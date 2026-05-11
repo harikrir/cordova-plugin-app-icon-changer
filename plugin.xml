@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 
 <plugin
-   id="cordova-plugin-app-icon-changer"
-   version="1.0.0"
-   xmlns="http://apache.org/cordova/ns/plugins/1.0">
+    id="cordova-plugin-app-icon-changer"
+    version="1.0.0"
+    xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
 <name>App Icon Changer</name>
 
