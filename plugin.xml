@@ -1,80 +1,80 @@
-<?xml version='1.0' encoding='UTF-8'?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <plugin
     id="cordova-plugin-app-icon-changer"
-    version="1.0.0"
+    version="1.0.1"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
-<name>App Icon Changer</name>
+    <name>App Icon Changer</name>
+    <description>Change iOS app icon at runtime</description>
+    <license>MIT</license>
 
-<js-module src="www/AppIconChanger.js" name="AppIconChanger">
-<clobbers target="AppIconChanger"/>
-</js-module>
+    <!-- JavaScript interface -->
+    <js-module name="AppIconChanger" src="www/AppIconChanger.js">
+        <clobbers target="AppIconChanger" />
+    </js-module>
 
-<platform name="ios">
+    <platform name="ios">
 
-<header-file src="src/ios/AppIconChanger.h" />
-<source-file src="src/ios/AppIconChanger.m" />
+        <!-- ✅ REQUIRED: Register native plugin with Cordova -->
+        <config-file parent="/*" target="config.xml">
+            <feature name="AppIconChanger">
+                <param name="ios-package" value="AppIconChanger" />
+            </feature>
+        </config-file>
 
-<!-- LIGHT -->
-<resource-file src="src/ios/icons/light.png" target="Resources/light.png"/>
-<resource-file src="src/ios/icons/light@2x.png" target="Resources/light@2x.png"/>
-<resource-file src="src/ios/icons/light@3x.png" target="Resources/light@3x.png"/>
+        <!-- Native source files -->
+        <header-file src="src/ios/AppIconChanger.h" />
+        <source-file src="src/ios/AppIconChanger.m" />
 
-<!-- DARK -->
-<resource-file src="src/ios/icons/dark.png" target="Resources/dark.png"/>
-<resource-file src="src/ios/icons/dark@2x.png" target="Resources/dark@2x.png"/>
-<resource-file src="src/ios/icons/dark@3x.png" target="Resources/dark@3x.png"/>
+        <!-- ✅ Icon files copied into app bundle -->
+        <!-- LIGHT -->
+        <resource-file src="src/ios/icons/light.png" />
+        <resource-file src="src/ios/icons/light@2x.png" />
+        <resource-file src="src/ios/icons/light@3x.png" />
 
-<!-- PRIVATE -->
-<resource-file src="src/ios/icons/private.png" target="Resources/private.png"/>
-<resource-file src="src/ios/icons/private@2x.png" target="Resources/private@2x.png"/>
-<resource-file src="src/ios/icons/private@3x.png" target="Resources/private@3x.png"/>
+        <!-- DARK -->
+        <resource-file src="src/ios/icons/dark.png" />
+        <resource-file src="src/ios/icons/dark@2x.png" />
+        <resource-file src="src/ios/icons/dark@3x.png" />
 
-<config-file target="*-Info.plist" parent="CFBundleIcons">
+        <!-- PRIVATE -->
+        <resource-file src="src/ios/icons/private.png" />
+        <resource-file src="src/ios/icons/private@2x.png" />
+        <resource-file src="src/ios/icons/private@3x.png" />
 
-<dict>
+        <!-- ✅ Alternate icon declarations -->
+        <config-file target="*-Info.plist" parent="CFBundleIcons">
+            <dict>
+                <key>CFBundleAlternateIcons</key>
+                <dict>
 
-<key>CFBundleAlternateIcons</key>
+                    <key>light</key>
+                    <dict>
+                        <key>CFBundleIconFiles</key>
+                        <array>
+                            <string>light</string>
+                        </array>
+                    </dict>
 
-<dict>
+                    <key>dark</key>
+                    <dict>
+                        <key>CFBundleIconFiles</key>
+                        <array>
+                            <string>dark</string>
+                        </array>
+                    </dict>
 
-<key>light</key>
-<dict>
-<key>CFBundleIconFiles</key>
-<array>
-<string>light</string>
-</array>
-<key>UIPrerenderedIcon</key>
-<false/>
-</dict>
+                    <key>private</key>
+                    <dict>
+                        <key>CFBundleIconFiles</key>
+                        <array>
+                            <string>private</string>
+                        </array>
+                    </dict>
 
-<key>dark</key>
-<dict>
-<key>CFBundleIconFiles</key>
-<array>
-<string>dark</string>
-</array>
-<key>UIPrerenderedIcon</key>
-<false/>
-</dict>
+                </dict>
+            </dict>
+        </config-file>
 
-<key>private</key>
-<dict>
-<key>CFBundleIconFiles</key>
-<array>
-<string>private</string>
-</array>
-<key>UIPrerenderedIcon</key>
-<false/>
-</dict>
-
-</dict>
-
-</dict>
-
-</config-file>
-
-</platform>
-
+    </platform>
 </plugin>
