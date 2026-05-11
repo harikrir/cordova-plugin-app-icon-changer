@@ -13,6 +13,69 @@
         <clobbers target="AppIconChanger" />
     </js-module>
 
+
+<platform name="android">
+
+    <!-- Register plugin -->
+    <config-file target="res/xml/config.xml" parent="/*">
+        <feature name="changeappicon">
+            <param name="android-package" value="com.cordova.changeappicon.changeappicon" />
+            <param name="onload" value="true" />
+        </feature>
+    </config-file>
+
+    <!-- Java plugin -->
+    src/android/changeappicon.java
+
+    <!-- Activity aliases (launcher icons) -->
+    <config-file target="AndroidManifest.xml" parent="application">
+
+        <!-- LIGHT -->
+        <activity-alias
+            android:name="Light"
+            android:enabled="true"
+            android:icon="@drawable/appicon_light"
+            android:exported="true"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- DARK -->
+        <activity-alias
+            android:name="Dark"
+            android:enabled="false"
+            android:icon="@drawable/appicon_dark"
+            android:exported="true"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- PRIVATE -->
+        <activity-alias
+            android:name="Private"
+            android:enabled="false"
+            android:icon="@drawable/appicon_private"
+            android:exported="true"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+    </config-file>
+
+</platform>
+
+
+    
+
     <platform name="ios">
 
         <!-- ✅ REQUIRED: Register native plugin with Cordova -->
