@@ -34,16 +34,16 @@
         <!-- ================= ICONS ================= -->
 
         <resource-file
-            src="src/android/icons/light.png"
-            target="res/drawable/light.png" />
+            src="src/android/icons/app_light.png"
+            target="res/drawable/app_light.png" />
 
         <resource-file
-            src="src/android/icons/dark.png"
-            target="res/drawable/dark.png" />
+            src="src/android/icons/app_dark.png"
+            target="res/drawable/app_dark.png" />
 
         <resource-file
-            src="src/android/icons/private.png"
-            target="res/drawable/private.png" />
+            src="src/android/icons/app_private.png"
+            target="res/drawable/app_private.png" />
 
         <!-- ================= MANIFEST INJECTION ================= -->
 
@@ -53,7 +53,7 @@
             <activity-alias
                 android:name="Light"
                 android:enabled="true"
-                android:icon="@drawable/light"
+                android:icon="@drawable/app_light"
                 android:exported="true"
                 android:targetActivity=".MainActivity">
                 <intent-filter>
@@ -66,7 +66,7 @@
             <activity-alias
                 android:name="Dark"
                 android:enabled="false"
-                android:icon="@drawable/dark"
+                android:icon="@drawable/app_dark"
                 android:exported="true"
                 android:targetActivity=".MainActivity">
                 <intent-filter>
@@ -79,7 +79,7 @@
             <activity-alias
                 android:name="Private"
                 android:enabled="false"
-                android:icon="@drawable/private"
+                android:icon="@drawable/app_private"
                 android:exported="true"
                 android:targetActivity=".MainActivity">
                 <intent-filter>
