@@ -1,69 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <plugin
-    id="cordova-plugin-app-icon-changer"
-    version="1.0.0"
-    xmlns="http://apache.org/cordova/ns/plugins/1.0">
+   id="cordova-plugin-app-icon-changer"
+   version="1.0.0"
+   xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
-  <name>App Icon Changer</name>
-  <description>Change the homescreen icon of your app dynamically</description>
-  <license>MIT</license>
+<name>App Icon Changer</name>
 
-  <!-- JavaScript bridge -->
-  <js-module src="www/AppIconChanger.js" name="AppIconChanger">
-    <clobbers target="AppIconChanger"/>
-  </js-module>
+<js-module src="www/AppIconChanger.js" name="AppIconChanger">
+<clobbers target="AppIconChanger"/>
+</js-module>
 
-  <!-- ================= iOS ================= -->
 <platform name="ios">
 
-  <!-- Native code -->
-  <header-file src="src/ios/AppIconChanger.h" />
-  <source-file src="src/ios/AppIconChanger.m" />
+<header-file src="src/ios/AppIconChanger.h" />
+<source-file src="src/ios/AppIconChanger.m" />
 
-  <!-- Copy icon files -->
-  <resource-file src="src/ios/icons/light-60.png" target="Resources/light-60.png"/>
-  <resource-file src="src/ios/icons/light-60@2x.png" target="Resources/light-60@2x.png"/>
-  <resource-file src="src/ios/icons/light-60@3x.png" target="Resources/light-60@3x.png"/>
+<!-- LIGHT -->
+<resource-file src="src/ios/icons/light.png" target="Resources/light.png"/>
+<resource-file src="src/ios/icons/light@2x.png" target="Resources/light@2x.png"/>
+<resource-file src="src/ios/icons/light@3x.png" target="Resources/light@3x.png"/>
 
-  <resource-file src="src/ios/icons/dark-60.png" target="Resources/dark-60.png"/>
-  <resource-file src="src/ios/icons/dark-60@2x.png" target="Resources/dark-60@2x.png"/>
-  <resource-file src="src/ios/icons/dark-60@3x.png" target="Resources/dark-60@3x.png"/>
+<!-- DARK -->
+<resource-file src="src/ios/icons/dark.png" target="Resources/dark.png"/>
+<resource-file src="src/ios/icons/dark@2x.png" target="Resources/dark@2x.png"/>
+<resource-file src="src/ios/icons/dark@3x.png" target="Resources/dark@3x.png"/>
 
-  <resource-file src="src/ios/icons/private-60.png" target="Resources/private-60.png"/>
-  <resource-file src="src/ios/icons/private-60@2x.png" target="Resources/private-60@2x.png"/>
-  <resource-file src="src/ios/icons/private-60@3x.png" target="Resources/private-60@3x.png"/>
+<!-- PRIVATE -->
+<resource-file src="src/ios/icons/private.png" target="Resources/private.png"/>
+<resource-file src="src/ios/icons/private@2x.png" target="Resources/private@2x.png"/>
+<resource-file src="src/ios/icons/private@3x.png" target="Resources/private@3x.png"/>
 
-  <!-- Inject alternate icons -->
-  <edit-config file="*-Info.plist" target="CFBundleIcons" mode="merge">
-    <dict>
-      <key>CFBundleAlternateIcons</key>
-      <dict>
-        <key>light</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>light-60</string>
-          </array>
-        </dict>
+<config-file target="*-Info.plist" parent="CFBundleIcons">
 
-        <key>dark</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>dark-60</string>
-          </array>
-        </dict>
+<dict>
 
-        <key>private</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>private-60</string>
-          </array>
-        </dict>
-      </dict>
-    </dict>
-  </edit-config>
+<key>CFBundleAlternateIcons</key>
+
+<dict>
+
+<key>light</key>
+<dict>
+<key>CFBundleIconFiles</key>
+<array>
+<string>light</string>
+</array>
+<key>UIPrerenderedIcon</key>
+<false/>
+</dict>
+
+<key>dark</key>
+<dict>
+<key>CFBundleIconFiles</key>
+<array>
+<string>dark</string>
+</array>
+<key>UIPrerenderedIcon</key>
+<false/>
+</dict>
+
+<key>private</key>
+<dict>
+<key>CFBundleIconFiles</key>
+<array>
+<string>private</string>
+</array>
+<key>UIPrerenderedIcon</key>
+<false/>
+</dict>
+
+</dict>
+
+</dict>
+
+</config-file>
 
 </platform>
 
