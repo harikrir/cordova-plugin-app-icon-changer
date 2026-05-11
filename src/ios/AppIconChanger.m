@@ -39,7 +39,8 @@
         return;
     }
 
-    __weak typeof(self) weakSelf = self;
+    /* ✅ FIX IS HERE */
+    __weak __typeof(self) weakSelf = self;
 
     [[UIApplication sharedApplication]
         setAlternateIconName:iconName
@@ -60,6 +61,7 @@
         } else {
             CDVPluginResult *ok =
                 [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
             [weakSelf.commandDelegate sendPluginResult:ok
                                             callbackId:command.callbackId];
         }
@@ -73,7 +75,8 @@
     CDVPluginResult *error =
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                           messageAsString:message ?: @"Unknown error"];
-    [self.commandDelegate sendPluginResult:error callbackId:callbackId];
+    [self.commandDelegate sendPluginResult:error
+                                callbackId:callbackId];
 }
 
 /**
