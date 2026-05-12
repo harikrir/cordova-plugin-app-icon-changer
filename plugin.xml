@@ -24,7 +24,7 @@
         </config-file>
 
         <source-file
-            src="src/android/changeappicon.java"
+            src="src/android/ChangeAppIcon.java"
             target-dir="src/com/cordova/changeappicon" />
 
         <!-- ================= ICONS ================= -->
