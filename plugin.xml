@@ -16,17 +16,13 @@
 
 <platform name="android">
 
-        <!-- Register native plugin -->
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="changeappicon">
-                <param
-                    name="android-package"
-                    value="com.cordova.changeappicon.changeappicon" />
-                <param name="onload" value="true" />
+      <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="ChangeAppIcon">
+                <param name="android-package"
+                       value="com.cordova.changeappicon.ChangeAppIcon" />
             </feature>
         </config-file>
 
-        <!-- Native Java file -->
         <source-file
             src="src/android/changeappicon.java"
             target-dir="src/com/cordova/changeappicon" />
