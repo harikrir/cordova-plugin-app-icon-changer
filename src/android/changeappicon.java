@@ -10,30 +10,16 @@ import org.apache.cordova.CallbackContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-/**
- * Cordova Plugin: Change Android Launcher Icon
- *
- * Supported icons:
- *  - light
- *  - dark
- *  - private
- *
- * NOTE:
- * Activity-alias entries MUST be injected via plugin.xml
- */
-public class changeappicon extends CordovaPlugin {
+public class ChangeAppIcon extends CordovaPlugin {
 
     private static final String ACTION_CHANGE_ICON = "changeIcon";
 
     @Override
-    public boolean execute(
-            String action,
-            JSONArray args,
-            CallbackContext callbackContext
-    ) throws JSONException {
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
+            throws JSONException {
 
         if (!ACTION_CHANGE_ICON.equals(action)) {
-            callbackContext.error("Unsupported action: " + action);
+            callbackContext.error("Unsupported action");
             return false;
         }
 
@@ -42,7 +28,7 @@ public class changeappicon extends CordovaPlugin {
             return true;
         }
 
-        String iconName = args.getString(0); // light | dark | private
+        String iconName = args.getString(0);
         changeIcon(iconName, callbackContext);
         return true;
     }
@@ -53,9 +39,9 @@ public class changeappicon extends CordovaPlugin {
             PackageManager pm = context.getPackageManager();
             String packageName = context.getPackageName();
 
-            // Disable MAIN launcher activity
+            // Disable MAIN activity
             ComponentName mainActivity =
-                new ComponentName(context, context.getClass());
+                new ComponentName(packageName, packageName + ".MainActivity");
 
             pm.setComponentEnabledSetting(
                 mainActivity,
@@ -63,24 +49,18 @@ public class changeappicon extends CordovaPlugin {
                 PackageManager.DONT_KILL_APP
             );
 
-            // Enable/disable activity aliases
             setAlias(pm, packageName, "Light", "light".equals(iconName));
             setAlias(pm, packageName, "Dark", "dark".equals(iconName));
             setAlias(pm, packageName, "Private", "private".equals(iconName));
 
-            callbackContext.success("Icon changed to: " + iconName);
+            callbackContext.success("Icon changed to " + iconName);
 
         } catch (Exception e) {
-            callbackContext.error("Icon change failed: " + e.getMessage());
+            callbackContext.error(e.getMessage());
         }
     }
 
-    private void setAlias(
-            PackageManager pm,
-            String packageName,
-            String alias,
-            boolean enable
-    ) {
+    private void setAlias(PackageManager pm, String packageName, String alias, boolean enable) {
         ComponentName component =
             new ComponentName(packageName, packageName + "." + alias);
 
