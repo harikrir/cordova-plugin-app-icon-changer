@@ -45,7 +45,7 @@
             <!-- ✅ DEFAULT ICON (ONLY launcher) -->
             <activity-alias
                 android:name=".Light"
-                android:enabled="true"
+                android:enabled="false"
                 android:icon="@drawable/app_light"
                 android:exported="true"
                 android:targetActivity=".MainActivity">
