@@ -55,6 +55,9 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                     case "dark":
 
+
+  pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                        
                         // ✅ Enable target FIRST
                         pm.setComponentEnabledSetting(
                                 new ComponentName(pkg, pkg + ".Dark"),
@@ -80,6 +83,8 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                     case "private":
 
+  pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                        
                         pm.setComponentEnabledSetting(
                                 new ComponentName(pkg, pkg + ".Private"),
                                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -102,7 +107,8 @@ public class ChangeAppIcon extends CordovaPlugin {
 
 
                     case "light":
-                  
+
+                          pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 
                         pm.setComponentEnabledSetting(
                                 new ComponentName(pkg, pkg + ".Light"),
@@ -131,18 +137,6 @@ public class ChangeAppIcon extends CordovaPlugin {
                         
                 }
 
-                // ✅ Delay helps launcher update cleanly
-                new android.os.Handler().postDelayed(() -> {
-
-                    callbackContext.success("Icon changed to " + iconName);
-
-                    // ✅ Refresh launcher (avoid restart)
-                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.addCategory(Intent.CATEGORY_HOME);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-
-                }, 800);
 
             } catch (Exception e) {
                 callbackContext.error(e.getMessage());
