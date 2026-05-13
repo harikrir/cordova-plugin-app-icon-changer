@@ -80,16 +80,20 @@ public class ChangeAppIcon extends CordovaPlugin {
                     enableAlias(pm, packageName, targetAlias);
 
                     // ✅ STEP 4: Delay slightly (important for launcher refresh)
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
+              new android.os.Handler().postDelayed(new Runnable() {
+    @Override
+    public void run() {
 
-                            callbackContext.success("Icon changed to " + iconName);
+        callbackContext.success("Icon changed to " + iconName);
 
-                            // ✅ STEP 5: Restart app (removes old icon instantly)
-                            restartApp(context);
-                        }
-                    }, 800); // works best across devices
+        // ✅ Fix: go to home instead of restarting app
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+
+    }
+}, 1200); // slightly higher delay improves stability
 
                 } catch (Exception e) {
                     callbackContext.error(e.getMessage());
