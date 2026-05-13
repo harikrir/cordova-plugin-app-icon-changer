@@ -2,6 +2,7 @@ package com.cordova.changeappicon;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import org.apache.cordova.CordovaPlugin;
@@ -29,7 +30,8 @@ public class ChangeAppIcon extends CordovaPlugin {
             return true;
         }
 
-        // ✅ Support object input: { iconName: "dark" }
+        // ✅ Support both formats:
+        // { iconName: "dark" } OR "dark"
         String iconName;
         if (args.get(0) instanceof JSONObject) {
             iconName = args.getJSONObject(0).optString("iconName", "light");
@@ -51,23 +53,43 @@ public class ChangeAppIcon extends CordovaPlugin {
                     PackageManager pm = context.getPackageManager();
                     String packageName = context.getPackageName();
 
-                    // ✅ NEVER disable MainActivity ❌ (FIXED)
+                    String selected = iconName.toLowerCase();
 
-                    // ✅ Always ensure ONE alias is enabled
-                    boolean isLight = "light".equalsIgnoreCase(iconName);
-                    boolean isDark = "dark".equalsIgnoreCase(iconName);
-                    boolean isPrivate = "private".equalsIgnoreCase(iconName);
+                    // ✅ STEP 1: Disable ALL aliases first (prevents duplicates)
+                    disableAlias(pm, packageName, "Light");
+                    disableAlias(pm, packageName, "Dark");
+                    disableAlias(pm, packageName, "Private");
 
-                    // ✅ fallback → Light if invalid input
-                    if (!isLight && !isDark && !isPrivate) {
-                        isLight = true;
+                    // ✅ STEP 2: Decide which one to enable
+                    String targetAlias;
+
+                    switch (selected) {
+                        case "dark":
+                            targetAlias = "Dark";
+                            break;
+                        case "private":
+                            targetAlias = "Private";
+                            break;
+                        case "light":
+                        default:
+                            targetAlias = "Light";
+                            break;
                     }
 
-                    setAlias(pm, packageName, "Light", isLight);
-                    setAlias(pm, packageName, "Dark", isDark);
-                    setAlias(pm, packageName, "Private", isPrivate);
+                    // ✅ STEP 3: Enable ONLY selected alias
+                    enableAlias(pm, packageName, targetAlias);
 
-                    callbackContext.success("Icon changed to " + iconName);
+                    // ✅ STEP 4: Delay slightly (important for launcher refresh)
+                    new android.os.Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            callbackContext.success("Icon changed to " + iconName);
+
+                            // ✅ STEP 5: Restart app (removes old icon instantly)
+                            restartApp(context);
+                        }
+                    }, 800); // works best across devices
 
                 } catch (Exception e) {
                     callbackContext.error(e.getMessage());
@@ -76,16 +98,41 @@ public class ChangeAppIcon extends CordovaPlugin {
         });
     }
 
-    private void setAlias(PackageManager pm, String packageName, String alias, boolean enable) {
-        ComponentName component =
-                new ComponentName(packageName, packageName + "." + alias);
+    // ✅ Enable alias
+    private void enableAlias(PackageManager pm, String pkg, String alias) {
+        ComponentName component = new ComponentName(pkg, pkg + "." + alias);
 
         pm.setComponentEnabledSetting(
                 component,
-                enable
-                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP
         );
     }
+
+    // ✅ Disable alias
+    private void disableAlias(PackageManager pm, String pkg, String alias) {
+        ComponentName component = new ComponentName(pkg, pkg + "." + alias);
+
+        pm.setComponentEnabledSetting(
+                component,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+        );
+    }
+
+    // ✅ Restart app (critical to avoid duplicate icons)
+    private void restartApp(Context context) {
+
+        PackageManager pm = context.getPackageManager();
+        Intent intent = pm.getLaunchIntentForPackage(context.getPackageName());
+
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(intent);
+        }
+
+        // Kill current process cleanly
+        Runtime.getRuntime().exit(0);
+    }
 }
+``
