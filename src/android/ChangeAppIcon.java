@@ -43,73 +43,104 @@ public class ChangeAppIcon extends CordovaPlugin {
 
     private void changeIcon(final String iconName, final CallbackContext callbackContext) {
 
+        cordova.getActivity().runOnUiThread(() -> {
+            try {
+                Context context = cordova.getActivity();
+                PackageManager pm = context.getPackageManager();
+                String pkg = context.getPackageName();
 
-         Log.i(TAG, "ChanageToIcon: "+ iconname);
-        final Context ct = this.cordova.getActivity().getApplicationContext();
-        //final Context ct = cordova.getActivity();
-        PackageManager pm = ct.getPackageManager();
-        switch (iconname){
-            case "dark":
+                String selected = iconName.toLowerCase();
 
-                pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".dark"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".private"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".light"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-               
-                
-                break;
-            case "private":
-				pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".dark"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".private"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".light"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-             
-                break;
-            case "light":
-				pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon1"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".private"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".light"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-              
-                break;
-     
-            default:
-              
-                break;
-        }
+                switch (selected) {
 
-        callbackContext.success("Plugin Success");
+                    case "dark":
+
+                        // ✅ Enable target FIRST
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Dark"),
+                                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        // ✅ Disable others
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Light"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Private"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        break;
 
 
-        
-       
-    }
+                    case "private":
 
-    // ✅ Enable selected alias
-    private void enableAlias(PackageManager pm, String pkg, String alias) {
-        ComponentName component = new ComponentName(pkg, pkg + "." + alias);
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Private"),
+                                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
 
-        pm.setComponentEnabledSetting(
-                component,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP
-        );
-    }
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Light"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
 
-    // ✅ Disable all others AFTER enabling
-    private void disableOthers(PackageManager pm, String pkg, String activeAlias) {
-        String[] aliases = {"Light", "Dark", "Private"};
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Dark"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
 
-        for (String alias : aliases) {
-            if (!alias.equals(activeAlias)) {
-                ComponentName component = new ComponentName(pkg, pkg + "." + alias);
+                        break;
 
-                pm.setComponentEnabledSetting(
-                        component,
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                        PackageManager.DONT_KILL_APP
-                );
+
+                    case "light":
+                    default:
+
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Light"),
+                                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Dark"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        pm.setComponentEnabledSetting(
+                                new ComponentName(pkg, pkg + ".Private"),
+                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                PackageManager.DONT_KILL_APP
+                        );
+
+                        break;
+                }
+
+                // ✅ Delay helps launcher update cleanly
+                new android.os.Handler().postDelayed(() -> {
+
+                    callbackContext.success("Icon changed to " + iconName);
+
+                    // ✅ Refresh launcher (avoid restart)
+                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                    intent.addCategory(Intent.CATEGORY_HOME);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+
+                }, 800);
+
+            } catch (Exception e) {
+                callbackContext.error(e.getMessage());
             }
-        }
+        });
     }
 }
