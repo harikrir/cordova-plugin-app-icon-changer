@@ -40,41 +40,44 @@
 
 
         <!-- ✅ ADD ALIASES -->
-        <config-file target="AndroidManifest.xml" parent="application">
-
-            <!-- ✅ DEFAULT ICON (ONLY launcher) -->
+  	  <config-file target="AndroidManifest.xml" parent="application">
             <activity-alias
-                android:name=".Light"
-                android:enabled="false"
-                android:icon="@drawable/app_light"
-                android:exported="true"
-                android:targetActivity=".MainActivity">
+				android:name="Light"
+				android:enabled="false"
+				android:icon="@drawable/app_light"
+			    	android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN"/>
-                    <category android:name="android.intent.category.LAUNCHER"/>
-                </intent-filter>
+			<activity-alias
+				android:name="Dark"
+				android:enabled="false"
+				android:icon="@drawable/app_dark"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-            </activity-alias>
+			<activity-alias
+				android:name="Private"
+				android:enabled="false"
+				android:icon="@drawable/app_private"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-
-            <!-- ❌ NO launcher -->
-            <activity-alias
-                android:name=".Dark"
-                android:enabled="false"
-                android:icon="@drawable/app_dark"
-                android:exported="true"
-                android:targetActivity=".MainActivity" />
-
-
-            <!-- ❌ NO launcher -->
-            <activity-alias
-                android:name=".Private"
-                android:enabled="false"
-                android:icon="@drawable/app_private"
-                android:exported="true"
-                android:targetActivity=".MainActivity" />
-
+		
         </config-file>
 
     </platform>
