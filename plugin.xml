@@ -2,7 +2,8 @@
 <plugin
     id="cordova-plugin-app-icon-changer"
     version="1.0.1"
-    xmlns="http://apache.org/cordova/ns/plugins/1.0">
+    xmlns="http://apache.org/cordova/ns/plugins/1.0"
+      xmlns:tools="http://schemas.android.com/tools">
 
     <name>App Icon Changer</name>
     <description>Change iOS app icon at runtime</description>
@@ -14,80 +15,75 @@
     </js-module>
 
 
-<platform name="android">
+    <platform name="android">
 
-      <config-file target="res/xml/config.xml" parent="/*">
+        <!-- ✅ Register plugin -->
+        <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AppIconChanger">
                 <param name="android-package"
                        value="com.cordova.changeappicon.ChangeAppIcon" />
             </feature>
         </config-file>
 
+        <!-- ✅ Java file -->
         <source-file
             src="src/android/ChangeAppIcon.java"
             target-dir="src/com/cordova/changeappicon" />
 
-        <!-- ================= ICONS ================= -->
+        <!-- ✅ ICONS -->
+        <resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
+        <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
+        <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
-        <resource-file
-            src="src/android/icons/app_light.png"
-            target="res/drawable/app_light.png" />
 
-        <resource-file
-            src="src/android/icons/app_dark.png"
-            target="res/drawable/app_dark.png" />
+        <!-- ✅ REMOVE launcher from MainActivity -->
+        <config-file target="AndroidManifest.xml"
+                     parent="/manifest/application/activity[@android:name='.MainActivity']">
 
-        <resource-file
-            src="src/android/icons/app_private.png"
-            target="res/drawable/app_private.png" />
+            <intent-filter tools:node="removeAll" />
 
-        <!-- ================= MANIFEST INJECTION ================= -->
+        </config-file>
 
+
+        <!-- ✅ ADD ALIASES -->
         <config-file target="AndroidManifest.xml" parent="application">
 
-            <!-- LIGHT (default) -->
+            <!-- ✅ DEFAULT ICON (ONLY launcher) -->
             <activity-alias
-                android:name="Light"
+                android:name=".Light"
                 android:enabled="true"
                 android:icon="@drawable/app_light"
                 android:exported="true"
                 android:targetActivity=".MainActivity">
+
                 <intent-filter>
                     <action android:name="android.intent.action.MAIN"/>
                     <category android:name="android.intent.category.LAUNCHER"/>
                 </intent-filter>
+
             </activity-alias>
 
-            <!-- DARK -->
+
+            <!-- ❌ NO launcher -->
             <activity-alias
-                android:name="Dark"
+                android:name=".Dark"
                 android:enabled="false"
                 android:icon="@drawable/app_dark"
                 android:exported="true"
-                android:targetActivity=".MainActivity">
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN"/>
-                    <category android:name="android.intent.category.LAUNCHER"/>
-                </intent-filter>
-            </activity-alias>
+                android:targetActivity=".MainActivity" />
 
-            <!-- PRIVATE -->
+
+            <!-- ❌ NO launcher -->
             <activity-alias
-                android:name="Private"
+                android:name=".Private"
                 android:enabled="false"
                 android:icon="@drawable/app_private"
                 android:exported="true"
-                android:targetActivity=".MainActivity">
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN"/>
-                    <category android:name="android.intent.category.LAUNCHER"/>
-                </intent-filter>
-            </activity-alias>
+                android:targetActivity=".MainActivity" />
 
         </config-file>
 
     </platform>
-
     
 
     <platform name="ios">
