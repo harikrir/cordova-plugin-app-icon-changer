@@ -102,7 +102,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
 
                     case "light":
-                    default:
+                  
 
                         pm.setComponentEnabledSetting(
                                 new ComponentName(pkg, pkg + ".Light"),
@@ -123,6 +123,12 @@ public class ChangeAppIcon extends CordovaPlugin {
                         );
 
                         break;
+
+   default:
+                //Toast.makeText(this, "Invalid icon name", Toast.LENGTH_LONG).show();
+                break;
+
+                        
                 }
 
                 // ✅ Delay helps launcher update cleanly
