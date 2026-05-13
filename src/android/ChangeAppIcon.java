@@ -30,8 +30,6 @@ public class ChangeAppIcon extends CordovaPlugin {
             return true;
         }
 
-        // ✅ Support both formats:
-        // { iconName: "dark" } OR "dark"
         String iconName;
         if (args.get(0) instanceof JSONObject) {
             iconName = args.getJSONObject(0).optString("iconName", "light");
@@ -45,64 +43,55 @@ public class ChangeAppIcon extends CordovaPlugin {
 
     private void changeIcon(final String iconName, final CallbackContext callbackContext) {
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Context context = cordova.getActivity();
-                    PackageManager pm = context.getPackageManager();
-                    String packageName = context.getPackageName();
+        cordova.getActivity().runOnUiThread(() -> {
+            try {
+                Context context = cordova.getActivity();
+                PackageManager pm = context.getPackageManager();
+                String packageName = context.getPackageName();
 
-                    String selected = iconName.toLowerCase();
+                String selected = iconName.toLowerCase();
 
-                    // ✅ STEP 1: Disable ALL aliases first (prevents duplicates)
-                    disableAlias(pm, packageName, "Light");
-                    disableAlias(pm, packageName, "Dark");
-                    disableAlias(pm, packageName, "Private");
+                String targetAlias;
 
-                    // ✅ STEP 2: Decide which one to enable
-                    String targetAlias;
-
-                    switch (selected) {
-                        case "dark":
-                            targetAlias = "Dark";
-                            break;
-                        case "private":
-                            targetAlias = "Private";
-                            break;
-                        case "light":
-                        default:
-                            targetAlias = "Light";
-                            break;
-                    }
-
-                    // ✅ STEP 3: Enable ONLY selected alias
-                    enableAlias(pm, packageName, targetAlias);
-
-                    // ✅ STEP 4: Delay slightly (important for launcher refresh)
-              new android.os.Handler().postDelayed(new Runnable() {
-    @Override
-    public void run() {
-
-        callbackContext.success("Icon changed to " + iconName);
-
-        // ✅ Fix: go to home instead of restarting app
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-    }
-}, 1200); // slightly higher delay improves stability
-
-                } catch (Exception e) {
-                    callbackContext.error(e.getMessage());
+                switch (selected) {
+                    case "dark":
+                        targetAlias = "Dark";
+                        break;
+                    case "private":
+                        targetAlias = "Private";
+                        break;
+                    case "light":
+                    default:
+                        targetAlias = "Light";
+                        break;
                 }
+
+                // ✅ STEP 1: ENABLE target FIRST (VERY IMPORTANT)
+                enableAlias(pm, packageName, targetAlias);
+
+                // ✅ STEP 2: DELAY → let launcher register change
+                new android.os.Handler().postDelayed(() -> {
+
+                    // ✅ STEP 3: DISABLE others AFTER
+                    disableOthers(pm, packageName, targetAlias);
+
+                    callbackContext.success("Icon changed to " + iconName);
+
+                    // ✅ STEP 4: Refresh launcher (better than restart)
+                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                    intent.addCategory(Intent.CATEGORY_HOME);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+
+                }, 800); // optimal delay
+
+            } catch (Exception e) {
+                callbackContext.error(e.getMessage());
             }
         });
     }
 
-    // ✅ Enable alias
+    // ✅ Enable selected alias
     private void enableAlias(PackageManager pm, String pkg, String alias) {
         ComponentName component = new ComponentName(pkg, pkg + "." + alias);
 
@@ -113,30 +102,20 @@ public class ChangeAppIcon extends CordovaPlugin {
         );
     }
 
-    // ✅ Disable alias
-    private void disableAlias(PackageManager pm, String pkg, String alias) {
-        ComponentName component = new ComponentName(pkg, pkg + "." + alias);
+    // ✅ Disable all others AFTER enabling
+    private void disableOthers(PackageManager pm, String pkg, String activeAlias) {
+        String[] aliases = {"Light", "Dark", "Private"};
 
-        pm.setComponentEnabledSetting(
-                component,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP
-        );
-    }
+        for (String alias : aliases) {
+            if (!alias.equals(activeAlias)) {
+                ComponentName component = new ComponentName(pkg, pkg + "." + alias);
 
-    // ✅ Restart app (critical to avoid duplicate icons)
-    private void restartApp(Context context) {
-
-        PackageManager pm = context.getPackageManager();
-        Intent intent = pm.getLaunchIntentForPackage(context.getPackageName());
-
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            context.startActivity(intent);
+                pm.setComponentEnabledSetting(
+                        component,
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        PackageManager.DONT_KILL_APP
+                );
+            }
         }
-
-        // Kill current process cleanly
-        Runtime.getRuntime().exit(0);
     }
 }
-
