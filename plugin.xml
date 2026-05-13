@@ -36,13 +36,7 @@
         <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
 
-        <!-- ✅ REMOVE launcher from MainActivity -->
-        <config-file target="AndroidManifest.xml"
-                     parent="/manifest/application/activity[@android:name='.MainActivity']">
-
-            <intent-filter tools:node="removeAll" />
-
-        </config-file>
+      
 
 
         <!-- ✅ ADD ALIASES -->
