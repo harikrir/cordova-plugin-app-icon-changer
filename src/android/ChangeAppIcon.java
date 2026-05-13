@@ -43,52 +43,51 @@ public class ChangeAppIcon extends CordovaPlugin {
 
     private void changeIcon(final String iconName, final CallbackContext callbackContext) {
 
-        cordova.getActivity().runOnUiThread(() -> {
-            try {
-                Context context = cordova.getActivity();
-                PackageManager pm = context.getPackageManager();
-                String packageName = context.getPackageName();
 
-                String selected = iconName.toLowerCase();
+         Log.i(TAG, "ChanageToIcon: "+ iconname);
+        final Context ct = this.cordova.getActivity().getApplicationContext();
+        //final Context ct = cordova.getActivity();
+        PackageManager pm = ct.getPackageManager();
+        switch (iconname){
+            case "dark":
 
-                String targetAlias;
+                pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon1"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon2"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon3"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon4"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon5"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                //Toast.makeText(this, "Launcher "+iconname+" has been applied successfully", Toast.LENGTH_LONG).show();
+                break;
+            case "private":
+				pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon1"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon2"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon3"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon4"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon5"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                //Toast.makeText(this, "Launcher "+iconname+" has been applied successfully", Toast.LENGTH_LONG).show();
+                break;
+            case "light":
+				pm.setComponentEnabledSetting(this.cordova.getActivity().getComponentName() , PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon1"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon2"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon3"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon4"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(new ComponentName(ct, packagenameval+".Icon5"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                //Toast.makeText(this, "Launcher "+iconname+" has been applied successfully", Toast.LENGTH_LONG).show();
+                break;
+     
+            default:
+                //Toast.makeText(this, "Invalid icon name", Toast.LENGTH_LONG).show();
+                break;
+        }
 
-                switch (selected) {
-                    case "dark":
-                        targetAlias = "Dark";
-                        break;
-                    case "private":
-                        targetAlias = "Private";
-                        break;
-                    case "light":
-                    default:
-                        targetAlias = "Light";
-                        break;
-                }
+        callbackContext.success("Plugin Success");
 
-                // ✅ STEP 1: ENABLE target FIRST (VERY IMPORTANT)
-                enableAlias(pm, packageName, targetAlias);
 
-                // ✅ STEP 2: DELAY → let launcher register change
-                new android.os.Handler().postDelayed(() -> {
-
-                    // ✅ STEP 3: DISABLE others AFTER
-                    disableOthers(pm, packageName, targetAlias);
-
-                    callbackContext.success("Icon changed to " + iconName);
-
-                    // ✅ STEP 4: Refresh launcher (better than restart)
-                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.addCategory(Intent.CATEGORY_HOME);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-
-                }, 800); // optimal delay
-
-            } catch (Exception e) {
-                callbackContext.error(e.getMessage());
-            }
-        });
+        
+       
     }
 
     // ✅ Enable selected alias
