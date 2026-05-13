@@ -9,6 +9,7 @@ import org.apache.cordova.CallbackContext;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ChangeAppIcon extends CordovaPlugin {
 
@@ -28,48 +29,63 @@ public class ChangeAppIcon extends CordovaPlugin {
             return true;
         }
 
-        String iconName = args.getString(0);
+        // ✅ Support object input: { iconName: "dark" }
+        String iconName;
+        if (args.get(0) instanceof JSONObject) {
+            iconName = args.getJSONObject(0).optString("iconName", "light");
+        } else {
+            iconName = args.getString(0);
+        }
+
         changeIcon(iconName, callbackContext);
         return true;
     }
 
-    private void changeIcon(String iconName, CallbackContext callbackContext) {
-        try {
-            Context context = cordova.getActivity();
-            PackageManager pm = context.getPackageManager();
-            String packageName = context.getPackageName();
+    private void changeIcon(final String iconName, final CallbackContext callbackContext) {
 
-            // Disable MAIN activity
-            ComponentName mainActivity =
-                new ComponentName(packageName, packageName + ".MainActivity");
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Context context = cordova.getActivity();
+                    PackageManager pm = context.getPackageManager();
+                    String packageName = context.getPackageName();
 
-            pm.setComponentEnabledSetting(
-                mainActivity,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP
-            );
+                    // ✅ NEVER disable MainActivity ❌ (FIXED)
 
-            setAlias(pm, packageName, "Light", "light".equals(iconName));
-            setAlias(pm, packageName, "Dark", "dark".equals(iconName));
-            setAlias(pm, packageName, "Private", "private".equals(iconName));
+                    // ✅ Always ensure ONE alias is enabled
+                    boolean isLight = "light".equalsIgnoreCase(iconName);
+                    boolean isDark = "dark".equalsIgnoreCase(iconName);
+                    boolean isPrivate = "private".equalsIgnoreCase(iconName);
 
-            callbackContext.success("Icon changed to " + iconName);
+                    // ✅ fallback → Light if invalid input
+                    if (!isLight && !isDark && !isPrivate) {
+                        isLight = true;
+                    }
 
-        } catch (Exception e) {
-            callbackContext.error(e.getMessage());
-        }
+                    setAlias(pm, packageName, "Light", isLight);
+                    setAlias(pm, packageName, "Dark", isDark);
+                    setAlias(pm, packageName, "Private", isPrivate);
+
+                    callbackContext.success("Icon changed to " + iconName);
+
+                } catch (Exception e) {
+                    callbackContext.error(e.getMessage());
+                }
+            }
+        });
     }
 
     private void setAlias(PackageManager pm, String packageName, String alias, boolean enable) {
         ComponentName component =
-            new ComponentName(packageName, packageName + "." + alias);
+                new ComponentName(packageName, packageName + "." + alias);
 
         pm.setComponentEnabledSetting(
-            component,
-            enable
-                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
+                component,
+                enable
+                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
         );
     }
 }
