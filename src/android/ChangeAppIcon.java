@@ -139,4 +139,4 @@ public class ChangeAppIcon extends CordovaPlugin {
         Runtime.getRuntime().exit(0);
     }
 }
-``
+
