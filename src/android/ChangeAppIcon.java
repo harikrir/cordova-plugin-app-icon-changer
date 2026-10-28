@@ -1,4 +1,3 @@
-
 package com.cordova.changeappicon;
 
 import android.content.ComponentName;
@@ -12,26 +11,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Locale;
-
 public class ChangeAppIcon extends CordovaPlugin {
 
     private static final String ACTION_CHANGE_ICON = "changeIcon";
 
-    private static final String[] ICONS = {
-        "Light",
-        "Dark",
-        "Private"
-    };
-
     @Override
-    public boolean execute(
-            String action,
-            JSONArray args,
-            CallbackContext callbackContext) throws JSONException {
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
+            throws JSONException {
 
         if (!ACTION_CHANGE_ICON.equals(action)) {
-            callbackContext.error("Unsupported action: " + action);
+            callbackContext.error("Unsupported action");
             return false;
         }
 
@@ -42,113 +31,68 @@ public class ChangeAppIcon extends CordovaPlugin {
 
         String iconName;
 
-        if (args.opt(0) instanceof JSONObject) {
-            iconName = args.getJSONObject(0).optString("iconName", "");
+        if (args.get(0) instanceof JSONObject) {
+            iconName = args.getJSONObject(0).optString("iconName", "Light");
         } else {
-            iconName = args.optString(0, "");
+            iconName = args.getString(0);
         }
 
-        if (iconName == null || iconName.trim().isEmpty()) {
-            callbackContext.error("Icon name cannot be empty");
-            return true;
-        }
-
-        String selectedIcon = normalizeIconName(iconName);
-
-        if (selectedIcon == null) {
-            callbackContext.error(
-                "Invalid icon name. Use Light, Dark, or Private."
-            );
-            return true;
-        }
-
-        changeIcon(selectedIcon, callbackContext);
+        changeIcon(iconName, callbackContext);
         return true;
     }
 
-    private void changeIcon(
-            String selectedIcon,
-            CallbackContext callbackContext) {
-
+    private void changeIcon(String iconName, CallbackContext callbackContext) {
         try {
             Context context = cordova.getActivity();
             PackageManager pm = context.getPackageManager();
-            String packageName = context.getPackageName();
+            String pkg = context.getPackageName();
 
-            /*
-             * IMPORTANT:
-             * Do not disable MainActivity.
-             * Deep links and RedirectActivity depend on it.
-             */
+            // Normalize icon name (light -> Light)
+            String selectedIcon = capitalize(iconName);
 
-            // Enable the selected alias first.
-            setAliasState(
-                pm,
-                packageName,
-                selectedIcon,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            // ✅ IMPORTANT: Disable MAIN ACTIVITY (same as your first plugin)
+            pm.setComponentEnabledSetting(
+                    cordova.getActivity().getComponentName(),
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP
             );
 
-            // Disable the remaining launcher aliases.
-            for (String icon : ICONS) {
-                if (!icon.equals(selectedIcon)) {
-                    setAliasState(
-                        pm,
-                        packageName,
-                        icon,
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                    );
-                }
-            }
+            // ✅ Disable ALL launcher aliases (brute force)
+            disable(pm, pkg, "Light");
+            disable(pm, pkg, "Dark");
+            disable(pm, pkg, "Private");
 
-            callbackContext.success(
-                "Icon changed to " + selectedIcon
-            );
+            // ✅ Enable ONLY selected icon
+            enable(pm, pkg, selectedIcon);
+
+            callbackContext.success("Icon changed to " + selectedIcon);
 
         } catch (Exception e) {
-            callbackContext.error(
-                "Error changing icon: " + e.getMessage()
-            );
+            callbackContext.error("Error changing icon: " + e.getMessage());
         }
     }
 
-    private void setAliasState(
-            PackageManager pm,
-            String packageName,
-            String aliasName,
-            int state) {
-
-        ComponentName component = new ComponentName(
-            packageName,
-            packageName + "." + aliasName
-        );
-
+    // ✅ Enable alias
+    private void enable(PackageManager pm, String pkg, String name) {
         pm.setComponentEnabledSetting(
-            component,
-            state,
-            PackageManager.DONT_KILL_APP
+                new ComponentName(pkg, pkg + "." + name),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
         );
     }
 
-    private String normalizeIconName(String value) {
-        if (value == null) {
-            return null;
-        }
+    // ✅ Disable alias
+    private void disable(PackageManager pm, String pkg, String name) {
+        pm.setComponentEnabledSetting(
+                new ComponentName(pkg, pkg + "." + name),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+        );
+    }
 
-        String normalized = value.trim().toLowerCase(Locale.ROOT);
-
-        switch (normalized) {
-            case "light":
-                return "Light";
-
-            case "dark":
-                return "Dark";
-
-            case "private":
-                return "Private";
-
-            default:
-                return null;
-        }
+    // ✅ Helper: capitalize first letter
+    private String capitalize(String value) {
+        if (value == null || value.length() == 0) return value;
+        return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
     }
 }
