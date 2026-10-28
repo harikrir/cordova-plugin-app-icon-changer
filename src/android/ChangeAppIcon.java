@@ -3,6 +3,7 @@ package com.cordova.changeappicon;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
@@ -13,7 +14,37 @@ import org.json.JSONObject;
 
 public class ChangeAppIcon extends CordovaPlugin {
 
+    private static final String TAG = "ChangeAppIcon";
     private static final String ACTION_CHANGE_ICON = "changeIcon";
+    private static final String[] ALIASES = {"Light", "Dark", "Private"};
+
+    @Override
+    protected void pluginInitialize() {
+        super.pluginInitialize();
+        // Self-heal: ensure MainActivity is enabled if it was disabled by an earlier release
+        ensureMainActivityEnabled();
+    }
+
+    private void ensureMainActivityEnabled() {
+        try {
+            Context context = cordova.getActivity();
+            PackageManager pm = context.getPackageManager();
+            String pkg = context.getPackageName();
+            ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+
+            int state = pm.getComponentEnabledSetting(mainActivity);
+            if (state == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
+                pm.setComponentEnabledSetting(
+                        mainActivity,
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        PackageManager.DONT_KILL_APP
+                );
+                Log.d(TAG, "MainActivity healed from DISABLED to ENABLED.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking/healing MainActivity: " + e.getMessage());
+        }
+    }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
@@ -30,7 +61,6 @@ public class ChangeAppIcon extends CordovaPlugin {
         }
 
         String iconName;
-
         if (args.get(0) instanceof JSONObject) {
             iconName = args.getJSONObject(0).optString("iconName", "Light");
         } else {
@@ -47,23 +77,16 @@ public class ChangeAppIcon extends CordovaPlugin {
             PackageManager pm = context.getPackageManager();
             String pkg = context.getPackageName();
 
-            // Normalize icon name (light -> Light)
             String selectedIcon = capitalize(iconName);
 
-            // ✅ IMPORTANT: Disable MAIN ACTIVITY (same as your first plugin)
-            pm.setComponentEnabledSetting(
-                    cordova.getActivity().getComponentName(),
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP
-            );
-
-            // ✅ Disable ALL launcher aliases (brute force)
-            disable(pm, pkg, "Light");
-            disable(pm, pkg, "Dark");
-            disable(pm, pkg, "Private");
-
-            // ✅ Enable ONLY selected icon
-            enable(pm, pkg, selectedIcon);
+            // Toggle ONLY aliases — leave MainActivity untouched!
+            for (String alias : ALIASES) {
+                if (alias.equalsIgnoreCase(selectedIcon)) {
+                    enable(pm, pkg, alias);
+                } else {
+                    disable(pm, pkg, alias);
+                }
+            }
 
             callbackContext.success("Icon changed to " + selectedIcon);
 
@@ -72,7 +95,6 @@ public class ChangeAppIcon extends CordovaPlugin {
         }
     }
 
-    // ✅ Enable alias
     private void enable(PackageManager pm, String pkg, String name) {
         pm.setComponentEnabledSetting(
                 new ComponentName(pkg, pkg + "." + name),
@@ -81,7 +103,6 @@ public class ChangeAppIcon extends CordovaPlugin {
         );
     }
 
-    // ✅ Disable alias
     private void disable(PackageManager pm, String pkg, String name) {
         pm.setComponentEnabledSetting(
                 new ComponentName(pkg, pkg + "." + name),
@@ -90,7 +111,6 @@ public class ChangeAppIcon extends CordovaPlugin {
         );
     }
 
-    // ✅ Helper: capitalize first letter
     private String capitalize(String value) {
         if (value == null || value.length() == 0) return value;
         return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
