@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <name>App Icon Changer</name>
-    <description>Change iOS app icon at runtime</description>
+    <description>Change App icon at runtime</description>
     <license>MIT</license>
 
     <!-- JavaScript interface -->
@@ -15,9 +15,6 @@
     </js-module>
 
     <platform name="android">
-
-        <!-- Hook to remove LAUNCHER filter from MainActivity so duplicate icons don't appear -->
-        <hook type="after_prepare" src="scripts/remove_launcher_from_main.js" />
 
         <!-- Register plugin -->
         <config-file target="res/xml/config.xml" parent="/*">
@@ -52,7 +49,7 @@
                 </intent-filter>
             </receiver>
 
-            <!-- Keep all aliases available with leading dots -->
+            <!-- Activity Aliases with leading dots -->
             <activity-alias
                 android:name=".Light"
                 android:enabled="true"
