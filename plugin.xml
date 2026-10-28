@@ -1,13 +1,12 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin
     id="cordova-plugin-app-icon-changer"
     version="1.0.1"
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+      xmlns:tools="http://schemas.android.com/tools">
 
     <name>App Icon Changer</name>
-    <description>Change application icon at runtime</description>
+    <description>Change iOS app icon at runtime</description>
     <license>MIT</license>
 
     <!-- JavaScript interface -->
@@ -15,118 +14,110 @@
         <clobbers target="AppIconChanger" />
     </js-module>
 
-    <!-- Android configuration -->
+
     <platform name="android">
 
-        <!-- Register Cordova plugin -->
+        <!-- ✅ Register plugin -->
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AppIconChanger">
-                <param
-                    name="android-package"
-                    value="com.cordova.changeappicon.ChangeAppIcon" />
+                <param name="android-package"
+                       value="com.cordova.changeappicon.ChangeAppIcon" />
             </feature>
         </config-file>
 
-        <!-- Native Java source -->
+        <!-- ✅ Java file -->
         <source-file
             src="src/android/ChangeAppIcon.java"
             target-dir="src/com/cordova/changeappicon" />
 
-        <!-- Launcher icon resources -->
-        <resource-file
-            src="src/android/icons/app_light.png"
-            target="res/drawable/app_light.png" />
+        <!-- ✅ ICONS -->
+        <resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
+        <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
+        <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
-        <resource-file
-            src="src/android/icons/app_dark.png"
-            target="res/drawable/app_dark.png" />
 
-        <resource-file
-            src="src/android/icons/app_private.png"
-            target="res/drawable/app_private.png" />
+      
 
-        <!-- Alternate launcher icons -->
-        <config-file
-            target="AndroidManifest.xml"
-            parent="/manifest/application">
 
+        <!-- ✅ ADD ALIASES -->
+  	  <config-file target="AndroidManifest.xml" parent="application">
             <activity-alias
-                android:name=".Light"
-                android:enabled="false"
-                android:exported="true"
-                android:icon="@drawable/app_light"
-                android:label="@string/app_name"
-                android:targetActivity=".MainActivity">
+				android:name="Light"
+				android:enabled="false"
+				android:icon="@drawable/app_light"
+			    	android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-            </activity-alias>
+			<activity-alias
+				android:name="Dark"
+				android:enabled="false"
+				android:icon="@drawable/app_dark"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-            <activity-alias
-                android:name=".Dark"
-                android:enabled="false"
-                android:exported="true"
-                android:icon="@drawable/app_dark"
-                android:label="@string/app_name"
-                android:targetActivity=".MainActivity">
+			<activity-alias
+				android:name="Private"
+				android:enabled="false"
+				android:icon="@drawable/app_private"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-            </activity-alias>
-
-            <activity-alias
-                android:name=".Private"
-                android:enabled="false"
-                android:exported="true"
-                android:icon="@drawable/app_private"
-                android:label="@string/app_name"
-                android:targetActivity=".MainActivity">
-
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-            </activity-alias>
-
+		
         </config-file>
-    </platform>
 
-    <!-- iOS configuration: preserved -->
+    </platform>
+    
+
     <platform name="ios">
 
+        <!-- ✅ REQUIRED: Register native plugin with Cordova -->
         <config-file parent="/*" target="config.xml">
             <feature name="AppIconChanger">
                 <param name="ios-package" value="AppIconChanger" />
             </feature>
         </config-file>
 
+        <!-- Native source files -->
         <header-file src="src/ios/AppIconChanger.h" />
         <source-file src="src/ios/AppIconChanger.m" />
 
-        <!-- Light icons -->
+        <!-- ✅ Icon files copied into app bundle -->
+        <!-- LIGHT -->
         <resource-file src="src/ios/icons/light.png" />
         <resource-file src="src/ios/icons/light@2x.png" />
         <resource-file src="src/ios/icons/light@3x.png" />
 
-        <!-- Dark icons -->
+        <!-- DARK -->
         <resource-file src="src/ios/icons/dark.png" />
         <resource-file src="src/ios/icons/dark@2x.png" />
         <resource-file src="src/ios/icons/dark@3x.png" />
 
-        <!-- Private icons -->
+        <!-- PRIVATE -->
         <resource-file src="src/ios/icons/private.png" />
         <resource-file src="src/ios/icons/private@2x.png" />
         <resource-file src="src/ios/icons/private@3x.png" />
 
-        <!-- Alternate icon declarations -->
+        <!-- ✅ Alternate icon declarations -->
         <config-file target="*-Info.plist" parent="CFBundleIcons">
             <dict>
                 <key>CFBundleAlternateIcons</key>
                 <dict>
+
                     <key>light</key>
                     <dict>
                         <key>CFBundleIconFiles</key>
@@ -150,6 +141,7 @@
                             <string>private</string>
                         </array>
                     </dict>
+
                 </dict>
             </dict>
         </config-file>
