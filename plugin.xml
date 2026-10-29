@@ -1,35 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin
    id="cordova-plugin-app-icon-changer"
-   version="6.0.0"
+   version="7.0.0"
    xmlns="http://apache.org/cordova/ns/plugins/1.0"
-   xmlns:android="http://schemas.android.com/apk/res/android"
-   xmlns:tools="http://schemas.android.com/tools">
+   xmlns:android="http://schemas.android.com/apk/res/android">
 <name>App Icon Changer</name>
 <description>Change App icon at runtime</description>
 <license>MIT</license>
-   
 <js-module name="AppIconChanger" src="www/AppIconChanger.js">
 <clobbers target="AppIconChanger" />
 </js-module>
-   
 <platform name="android">
-<!-- Safely replace the MAIN intent filter so MainActivity loses LAUNCHER status without XML corruption -->
-<config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:name='MainActivity']">
-<intent-filter tools:node="replace">
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.DEFAULT" />
-</intent-filter>
-</config-file>
 <config-file target="res/xml/config.xml" parent="/*">
 <feature name="AppIconChanger">
 <param name="android-package" value="com.cordova.changeappicon.ChangeAppIcon" />
 </feature>
 </config-file>
-<!-- Removed SmartRedirectActivity -->
 <source-file src="src/android/ChangeAppIcon.java" target-dir="src/com/cordova/changeappicon" />
 <source-file src="src/android/UpgradeReceiver.java" target-dir="src/com/cordova/changeappicon" />
-<resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
 <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
 <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 <config-file target="AndroidManifest.xml" parent="/manifest/application">
@@ -38,19 +26,7 @@
 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 </intent-filter>
 </receiver>
-<!-- Light Alias (Enabled by default) -->
-<activity-alias
-               android:name=".Light"
-               android:enabled="true"
-               android:icon="@drawable/app_light"
-               android:exported="true"
-               android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-</activity-alias>
-<!-- Dark Alias -->
+<!-- ONLY Dark and Private aliases exist now. MainActivity handles Light natively. -->
 <activity-alias
                android:name=".Dark"
                android:enabled="false"
@@ -62,7 +38,6 @@
 <category android:name="android.intent.category.LAUNCHER"/>
 </intent-filter>
 </activity-alias>
-<!-- Private Alias -->
 <activity-alias
                android:name=".Private"
                android:enabled="false"
@@ -76,6 +51,7 @@
 </activity-alias>
 </config-file>
 </platform>
+   
 <platform name="ios">
 <config-file parent="/*" target="config.xml">
 <feature name="AppIconChanger">
