@@ -1,105 +1,94 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<plugin
-   id="cordova-plugin-app-icon-changer"
-   version="4.0.1"
-   xmlns="http://apache.org/cordova/ns/plugins/1.0"
-   xmlns:android="http://schemas.android.com/apk/res/android"
-   xmlns:tools="http://schemas.android.com/tools">
-<name>App Icon Changer</name>
-<description>Change App icon at runtime</description>
-<license>MIT</license>
-<js-module name="AppIconChanger" src="www/AppIconChanger.js">
-<clobbers target="AppIconChanger" />
-</js-module>
-<platform name="android">
-<!-- NATIVE ANDROID WAY: Force Gradle to remove the LAUNCHER tag from MainActivity cleanly -->
-<config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:name='MainActivity']/intent-filter">
-<category android:name="android.intent.category.LAUNCHER" tools:node="remove" />
-<category android:name="android.intent.category.DEFAULT" />
-</config-file>
-<config-file target="res/xml/config.xml" parent="/*">
-<feature name="AppIconChanger">
-<param name="android-package" value="com.cordova.changeappicon.ChangeAppIcon" />
-</feature>
-</config-file>
-<source-file src="src/android/ChangeAppIcon.java" target-dir="src/com/cordova/changeappicon" />
-<source-file src="src/android/UpgradeReceiver.java" target-dir="src/com/cordova/changeappicon" />
-<resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
-<resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
-<resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
-<config-file target="AndroidManifest.xml" parent="/manifest/application">
-<receiver android:name="com.cordova.changeappicon.UpgradeReceiver" android:exported="false">
-<intent-filter>
-<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-</intent-filter>
-</receiver>
-<!-- Light Alias (Enabled by default) -->
-<activity-alias
-               android:name=".Light"
-               android:enabled="true"
-               android:icon="@drawable/app_light"
-               android:exported="true"
-               android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-</activity-alias>
-<!-- Dark Alias -->
-<activity-alias
-               android:name=".Dark"
-               android:enabled="false"
-               android:icon="@drawable/app_dark"
-               android:exported="true"
-               android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-</activity-alias>
-<!-- Private Alias -->
-<activity-alias
-               android:name=".Private"
-               android:enabled="false"
-               android:icon="@drawable/app_private"
-               android:exported="true"
-               android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-</activity-alias>
-</config-file>
-</platform>
-<platform name="ios">
-<config-file parent="/*" target="config.xml">
-<feature name="AppIconChanger">
-<param name="ios-package" value="AppIconChanger" />
-</feature>
-</config-file>
-<header-file src="src/ios/AppIconChanger.h" />
-<source-file src="src/ios/AppIconChanger.m" />
-<resource-file src="src/ios/icons/light.png" />
-<resource-file src="src/ios/icons/light@2x.png" />
-<resource-file src="src/ios/icons/light@3x.png" />
-<resource-file src="src/ios/icons/dark.png" />
-<resource-file src="src/ios/icons/dark@2x.png" />
-<resource-file src="src/ios/icons/dark@3x.png" />
-<resource-file src="src/ios/icons/private.png" />
-<resource-file src="src/ios/icons/private@2x.png" />
-<resource-file src="src/ios/icons/private@3x.png" />
-<config-file target="*-Info.plist" parent="CFBundleIcons">
-<dict>
-<key>CFBundleAlternateIcons</key>
-<dict>
-<key>light</key>
-<dict><key>CFBundleIconFiles</key><array><string>light</string></array></dict>
-<key>dark</key>
-<dict><key>CFBundleIconFiles</key><array><string>dark</string></array></dict>
-<key>private</key>
-<dict><key>CFBundleIconFiles</key><array><string>private</string></array></dict>
-</dict>
-</dict>
-</config-file>
-</platform>
-</plugin>
+package com.cordova.changeappicon;
+
+import android.content.BroadcastReceiver;
+
+import android.content.ComponentName;
+
+import android.content.Context;
+
+import android.content.Intent;
+
+import android.content.pm.PackageManager;
+
+import android.util.Log;
+
+public class UpgradeReceiver extends BroadcastReceiver {
+
+    private static final String TAG = "AppIconUpgradeReceiver";
+
+    private static final String[] ALIASES = {"Dark", "Private"};
+
+    @Override
+
+    public void onReceive(Context context, Intent intent) {
+
+        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
+
+            try {
+
+                PackageManager pm = context.getPackageManager();
+
+                String pkg = context.getPackageName();
+
+                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+
+                String activeAlias = null;
+
+                for (String alias : ALIASES) {
+
+                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
+
+                    if (pm.getComponentEnabledSetting(comp) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+
+                        activeAlias = alias;
+
+                        break;
+
+                    }
+
+                }
+
+                if (activeAlias != null) {
+
+                    // User was using Dark or Private. Disable MainActivity to prevent duplicate icons.
+
+                    pm.setComponentEnabledSetting(
+
+                            mainActivity,
+
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+
+                            PackageManager.DONT_KILL_APP
+
+                    );
+
+                } else {
+
+                    // User was using Light. Ensure MainActivity remains enabled.
+
+                    pm.setComponentEnabledSetting(
+
+                            mainActivity,
+
+                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+
+                            PackageManager.DONT_KILL_APP
+
+                    );
+
+                }
+
+                Log.d(TAG, "App upgrade complete. Restored icon state: " + (activeAlias != null ? activeAlias : "Light"));
+
+            } catch (Exception e) {
+
+                Log.e(TAG, "Error during upgrade icon normalization: " + e.getMessage(), e);
+
+            }
+
+        }
+
+    }
+
+}
+ 
