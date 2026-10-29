@@ -16,7 +16,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
     private static final String TAG = "AppIconUpgradeReceiver";
 
-    private static final String[] ALIASES = {"Dark", "Private"};
+    private static final String[] ALIASES = {"Light", "Dark", "Private"};
 
     @Override
 
@@ -24,7 +24,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
         if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
 
-            Log.d(TAG, "Application package upgraded. Sanitizing components...");
+            Log.d(TAG, "Application upgraded. Restoring MainActivity and normalizing aliases...");
 
             try {
 
@@ -32,7 +32,21 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 String pkg = context.getPackageName();
 
-                // Check if user was previously running Dark or Private
+                // 1. Always keep MainActivity ENABLED so OutSystems cache manifest & RedirectActivity work
+
+                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+
+                pm.setComponentEnabledSetting(
+
+                        mainActivity,
+
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+
+                        PackageManager.DONT_KILL_APP
+
+                );
+
+                // 2. Check which alias the user was using previously
 
                 String activeAlias = null;
 
@@ -50,79 +64,41 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 }
 
-                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+                // Fallback to Light if none was explicitly enabled
 
-                if (activeAlias != null) {
+                if (activeAlias == null) {
 
-                    // Retain the chosen Dark or Private icon
-
-                    for (String alias : ALIASES) {
-
-                        ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
-
-                        pm.setComponentEnabledSetting(
-
-                                comp,
-
-                                alias.equalsIgnoreCase(activeAlias) 
-
-                                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED 
-
-                                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-
-                                PackageManager.DONT_KILL_APP
-
-                        );
-
-                    }
-
-                    pm.setComponentEnabledSetting(
-
-                            mainActivity,
-
-                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-
-                            PackageManager.DONT_KILL_APP
-
-                    );
-
-                } else {
-
-                    // Default to Light (MainActivity enabled, all aliases disabled)
-
-                    pm.setComponentEnabledSetting(
-
-                            mainActivity,
-
-                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-
-                            PackageManager.DONT_KILL_APP
-
-                    );
-
-                    for (String alias : ALIASES) {
-
-                        ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
-
-                        pm.setComponentEnabledSetting(
-
-                                comp,
-
-                                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-
-                                PackageManager.DONT_KILL_APP
-
-                        );
-
-                    }
+                    activeAlias = "Light";
 
                 }
 
-                Log.d(TAG, "Upgrade reconciliation complete.");
+                // 3. Enable ONLY the active alias and disable the other two
+
+                for (String alias : ALIASES) {
+
+                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
+
+                    pm.setComponentEnabledSetting(
+
+                            comp,
+
+                            alias.equalsIgnoreCase(activeAlias)
+
+                                    ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+
+                                    : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+
+                            PackageManager.DONT_KILL_APP
+
+                    );
+
+                }
+
+                Log.d(TAG, "Upgrade complete. Active icon: " + activeAlias);
 
             } catch (Exception e) {
 
-                Log.e(TAG, "Failed to sanitize components on upgrade: " + e.getMessage(), e);
+                Log.e(TAG, "Error during upgrade icon normalization: " + e.getMessage(), e);
 
             }
 
