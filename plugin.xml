@@ -17,6 +17,31 @@
 
     <platform name="android">
 
+
+        
+        <!-- 2. Neutralize the default OutSystems deep link router -->
+        <config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:name='com.outsystems.plugins.auth.RedirectActivity']">
+            <intent-filter tools:node="removeAll" />
+        </config-file>
+
+        <!-- 3. Register dynamic interceptor -->
+        <config-file target="AndroidManifest.xml" parent="application">
+            <activity android:name="com.cordova.changeappicon.SmartRedirectActivity" android:exported="true" android:noHistory="true" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+                <intent-filter>
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <!-- Uses the dynamic variable -->
+                    <data android:scheme="$URL_SCHEME" /> 
+                </intent-filter>
+            </activity>
+        </config-file>
+        
+        <!-- Make sure to declare the new Java file -->
+        <source-file src="src/android/SmartRedirectActivity.java" target-dir="src/com/cordova/changeappicon" />
+
+
+		
         <!-- ✅ Register plugin -->
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AppIconChanger">
