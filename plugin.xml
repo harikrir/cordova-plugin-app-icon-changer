@@ -1,24 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin
    id="cordova-plugin-app-icon-changer"
-   version="5.0.0"
+   version="6.0.0"
    xmlns="http://apache.org/cordova/ns/plugins/1.0"
-   xmlns:android="http://schemas.android.com/apk/res/android">
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:tools="http://schemas.android.com/tools">
 <name>App Icon Changer</name>
 <description>Change App icon at runtime</description>
 <license>MIT</license>
+   
 <js-module name="AppIconChanger" src="www/AppIconChanger.js">
 <clobbers target="AppIconChanger" />
 </js-module>
+   
 <platform name="android">
+<!-- Safely replace the MAIN intent filter so MainActivity loses LAUNCHER status without XML corruption -->
+<config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:name='MainActivity']">
+<intent-filter tools:node="replace">
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.DEFAULT" />
+</intent-filter>
+</config-file>
 <config-file target="res/xml/config.xml" parent="/*">
 <feature name="AppIconChanger">
 <param name="android-package" value="com.cordova.changeappicon.ChangeAppIcon" />
 </feature>
 </config-file>
+<!-- Removed SmartRedirectActivity -->
 <source-file src="src/android/ChangeAppIcon.java" target-dir="src/com/cordova/changeappicon" />
-<source-file src="src/android/SmartRedirectActivity.java" target-dir="src/com/cordova/changeappicon" />
 <source-file src="src/android/UpgradeReceiver.java" target-dir="src/com/cordova/changeappicon" />
+<resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
 <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
 <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 <config-file target="AndroidManifest.xml" parent="/manifest/application">
@@ -27,20 +38,18 @@
 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 </intent-filter>
 </receiver>
-<!-- Intercept deep links to fix MainActivity state before OutSystems crashes -->
-<activity
-               android:name="com.cordova.changeappicon.SmartRedirectActivity"
+<!-- Light Alias (Enabled by default) -->
+<activity-alias
+               android:name=".Light"
+               android:enabled="true"
+               android:icon="@drawable/app_light"
                android:exported="true"
-               android:noHistory="true"
-               android:theme="@android:style/Theme.Translucent.NoTitleBar">
+               android:targetActivity=".MainActivity">
 <intent-filter>
-<action android:name="android.intent.action.VIEW" />
-<category android:name="android.intent.category.DEFAULT" />
-<category android:name="android.intent.category.BROWSABLE" />
-<!-- IMPORTANT: Replace this scheme with your actual banking scheme -->
-<data android:scheme="com.aub.mobilebanking.bh" />
+<action android:name="android.intent.action.MAIN"/>
+<category android:name="android.intent.category.LAUNCHER"/>
 </intent-filter>
-</activity>
+</activity-alias>
 <!-- Dark Alias -->
 <activity-alias
                android:name=".Dark"
