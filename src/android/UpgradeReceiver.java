@@ -15,7 +15,6 @@ public class UpgradeReceiver extends BroadcastReceiver {
            try {
                PackageManager pm = context.getPackageManager();
                String pkg = context.getPackageName();
-               // 1. Identify if customer was previously running a custom icon
                String activeAlias = null;
                for (String alias : ALIASES) {
                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
@@ -26,7 +25,6 @@ public class UpgradeReceiver extends BroadcastReceiver {
                }
                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
                if (activeAlias != null) {
-                   // Customer was on Light, Dark, or Private: Keep only that alias enabled
                    for (String alias : ALIASES) {
                        ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
                        pm.setComponentEnabledSetting(
@@ -43,7 +41,6 @@ public class UpgradeReceiver extends BroadcastReceiver {
                            PackageManager.DONT_KILL_APP
                    );
                } else {
-                   // Customer was on OutSystems default icon: Keep MainActivity enabled
                    pm.setComponentEnabledSetting(
                            mainActivity,
                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
