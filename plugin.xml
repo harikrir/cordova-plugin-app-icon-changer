@@ -19,12 +19,10 @@
 
 
         
-        <!-- 2. Neutralize the default OutSystems deep link router -->
-        <config-file target="AndroidManifest.xml" parent="application">
-            <activity android:name="com.outsystems.plugins.auth.RedirectActivity" tools:node="merge">
-                <intent-filter tools:node="removeAll" />
-            </activity>
-        </config-file>
+   <!-- 2. Safely disable the default OutSystems router without creating duplicates -->
+        <edit-config file="AndroidManifest.xml" target="/manifest/application/activity[@android:name='com.outsystems.plugins.auth.RedirectActivity']" mode="merge">
+            <activity android:enabled="false" android:exported="false" />
+        </edit-config>
 
         <!-- 3. Register dynamic interceptor -->
         <config-file target="AndroidManifest.xml" parent="application">
@@ -33,7 +31,6 @@
                     <action android:name="android.intent.action.VIEW" />
                     <category android:name="android.intent.category.DEFAULT" />
                     <category android:name="android.intent.category.BROWSABLE" />
-                    <!-- Uses the dynamic variable -->
                     <data android:scheme="$URL_SCHEME" /> 
                 </intent-filter>
             </activity>
