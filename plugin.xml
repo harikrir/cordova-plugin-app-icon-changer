@@ -1,45 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin
    id="cordova-plugin-app-icon-changer"
-   version="1.2.0"
-   xmlns="http://apache.org/cordova/ns/plugins/1.0">
+   version="1.3.0"
+   xmlns="http://apache.org/cordova/ns/plugins/1.0"
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:tools="http://schemas.android.com/tools">
 <name>App Icon Changer</name>
 <description>Change App icon at runtime</description>
 <license>MIT</license>
-<!-- JavaScript interface -->
 <js-module name="AppIconChanger" src="www/AppIconChanger.js">
 <clobbers target="AppIconChanger" />
 </js-module>
 <platform name="android">
-<!-- Register plugin -->
 <config-file target="res/xml/config.xml" parent="/*">
 <feature name="AppIconChanger">
 <param name="android-package"
                       value="com.cordova.changeappicon.ChangeAppIcon" />
 </feature>
 </config-file>
-<!-- Java source files -->
 <source-file
            src="src/android/ChangeAppIcon.java"
            target-dir="src/com/cordova/changeappicon" />
 <source-file
-           src="src/android/AppIconInitProvider.java"
+           src="src/android/SmartRedirectActivity.java"
            target-dir="src/com/cordova/changeappicon" />
 <source-file
            src="src/android/UpgradeReceiver.java"
            target-dir="src/com/cordova/changeappicon" />
-<!-- ICONS (app_light is already the OutSystems app icon) -->
 <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
 <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
-<!-- Manifest additions -->
 <config-file target="AndroidManifest.xml" parent="/manifest/application">
-<!-- ContentProvider executes BEFORE RedirectActivity on deep links -->
-<provider
-               android:name="com.cordova.changeappicon.AppIconInitProvider"
-               android:authorities="${applicationId}.appiconinitprovider"
-               android:exported="false"
-               android:initOrder="1000" />
-<!-- Upgrade receiver to heal state for existing users -->
 <receiver
                android:name="com.cordova.changeappicon.UpgradeReceiver"
                android:exported="false">
@@ -47,7 +37,21 @@
 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 </intent-filter>
 </receiver>
-<!-- Dark (Alternate icon 1) -->
+<!-- Replace standard RedirectActivity with SmartRedirectActivity -->
+<activity
+               android:name="com.cordova.changeappicon.SmartRedirectActivity"
+               android:exported="true"
+               android:noHistory="true"
+               android:launchMode="singleInstance"
+               android:theme="@android:style/Theme.Translucent.NoTitleBar">
+<intent-filter>
+<action android:name="android.intent.action.VIEW" />
+<category android:name="android.intent.category.DEFAULT" />
+<category android:name="android.intent.category.BROWSABLE" />
+<data android:scheme="com.aub.mobilebanking.bh" />
+</intent-filter>
+</activity>
+<!-- Dark Alias -->
 <activity-alias
                android:name=".Dark"
                android:enabled="false"
@@ -59,7 +63,7 @@
 <category android:name="android.intent.category.LAUNCHER"/>
 </intent-filter>
 </activity-alias>
-<!-- Private (Alternate icon 2) -->
+<!-- Private Alias -->
 <activity-alias
                android:name=".Private"
                android:enabled="false"
