@@ -20,8 +20,10 @@
 
         
         <!-- 2. Neutralize the default OutSystems deep link router -->
-        <config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:name='com.outsystems.plugins.auth.RedirectActivity']">
-            <intent-filter tools:node="removeAll" />
+        <config-file target="AndroidManifest.xml" parent="application">
+            <activity android:name="com.outsystems.plugins.auth.RedirectActivity" tools:node="merge">
+                <intent-filter tools:node="removeAll" />
+            </activity>
         </config-file>
 
         <!-- 3. Register dynamic interceptor -->
