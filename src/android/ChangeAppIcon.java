@@ -2,15 +2,11 @@ package com.cordova.changeappicon;
 
 import android.app.Activity;
 
-import android.app.Application;
-
 import android.content.ComponentName;
 
 import android.content.Context;
 
 import android.content.pm.PackageManager;
-
-import android.os.Bundle;
 
 import android.os.Handler;
 
@@ -35,120 +31,6 @@ public class ChangeAppIcon extends CordovaPlugin {
     private static final String ACTION_CHANGE_ICON = "changeIcon";
 
     public static final String[] ALIASES = {"Dark", "Private"};
-
-    @Override
-
-    protected void pluginInitialize() {
-
-        super.pluginInitialize();
-
-        registerResumeCleanup();
-
-    }
-
-    /**
-
-     * When MainActivity resumes after a deep link, check if an alias (Dark/Private)
-
-     * is active. If so, re-disable MainActivity so the second icon disappears.
-
-     */
-
-    private void registerResumeCleanup() {
-
-        try {
-
-            Application app = cordova.getActivity().getApplication();
-
-            app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-
-                @Override
-
-                public void onActivityResumed(Activity activity) {
-
-                    if (activity.getClass().getName().contains("MainActivity")) {
-
-                        sanitizeMainActivityLauncher(activity);
-
-                    }
-
-                }
-
-                @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
-
-                @Override public void onActivityStarted(Activity activity) {}
-
-                @Override public void onActivityPaused(Activity activity) {}
-
-                @Override public void onActivityStopped(Activity activity) {}
-
-                @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
-
-                @Override public void onActivityDestroyed(Activity activity) {}
-
-            });
-
-        } catch (Exception e) {
-
-            Log.e(TAG, "Error registering resume listener: " + e.getMessage());
-
-        }
-
-    }
-
-    private void sanitizeMainActivityLauncher(Context context) {
-
-        try {
-
-            PackageManager pm = context.getPackageManager();
-
-            String pkg = context.getPackageName();
-
-            // Check if Dark or Private is currently active
-
-            boolean isAliasActive = false;
-
-            for (String alias : ALIASES) {
-
-                ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
-
-                if (pm.getComponentEnabledSetting(comp) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-
-                    isAliasActive = true;
-
-                    break;
-
-                }
-
-            }
-
-            // If user is on Dark or Private, hide MainActivity again so only 1 icon remains
-
-            if (isAliasActive) {
-
-                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
-
-                pm.setComponentEnabledSetting(
-
-                        mainActivity,
-
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-
-                        PackageManager.DONT_KILL_APP
-
-                );
-
-                Log.d(TAG, "MainActivity suppressed after deep link resume. Single icon maintained.");
-
-            }
-
-        } catch (Exception e) {
-
-            Log.e(TAG, "Error sanitizing launcher: " + e.getMessage());
-
-        }
-
-    }
 
     @Override
 
@@ -208,7 +90,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             if ("Light".equalsIgnoreCase(selectedIcon) || "Default".equalsIgnoreCase(selectedIcon)) {
 
-                // LIGHT (OutSystems Default)
+                // Return to Default (MainActivity)
 
                 pm.setComponentEnabledSetting(
 
@@ -240,17 +122,23 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             } else {
 
-                // DARK or PRIVATE
+                // Switching to Dark or Private
+
+                ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
+
+                // 1. Enable the target alias FIRST
 
                 pm.setComponentEnabledSetting(
 
-                        mainActivity,
+                        targetAlias,
 
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
 
                         PackageManager.DONT_KILL_APP
 
                 );
+
+                // 2. Disable unused aliases
 
                 for (String alias : ALIASES) {
 
@@ -272,13 +160,13 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 }
 
-                ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
+                // 3. Disable MainActivity LAST
 
                 pm.setComponentEnabledSetting(
 
-                        targetAlias,
+                        mainActivity,
 
-                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
 
                         PackageManager.DONT_KILL_APP
 
@@ -287,6 +175,8 @@ public class ChangeAppIcon extends CordovaPlugin {
             }
 
             callbackContext.success("Icon changed to " + selectedIcon);
+
+            // Give PM time to persist state before terminating process
 
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 
@@ -314,7 +204,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 }
 
-            }, 300);
+            }, 500);
 
         } catch (Exception e) {
 
