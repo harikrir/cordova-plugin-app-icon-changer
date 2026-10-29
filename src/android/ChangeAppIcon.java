@@ -2,97 +2,106 @@ package com.cordova.changeappicon;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CallbackContext;
+public class ChangeAppIcon {
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+    private static final String TAG = "ChangeAppIcon";
 
-public class ChangeAppIcon extends CordovaPlugin {
+    private static final String PREFS_NAME = "AppIconChanger";
+    private static final String PREF_ACTIVE_ICON = "active_icon";
 
-    private static final String ACTION_CHANGE_ICON = "changeIcon";
+    private static final String MAIN_ACTIVITY = ".MainActivity";
 
-    @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
-            throws JSONException {
+    private static final String[] ICON_ALIASES = {
+        ".Light",
+        ".Dark",
+        ".Private"
+    };
 
-        if (!ACTION_CHANGE_ICON.equals(action)) {
-            callbackContext.error("Unsupported action");
-            return false;
+    public static void changeIcon(Context context, String iconName) {
+
+        if (context == null || iconName == null) {
+            Log.e(TAG, "Context or icon name is null");
+            return;
         }
 
-        if (args == null || args.length() == 0) {
-            callbackContext.error("Missing icon name");
-            return true;
+        String selectedAlias = getAlias(iconName);
+
+        if (selectedAlias == null) {
+            Log.e(TAG, "Invalid icon name: " + iconName);
+            return;
         }
 
-        String iconName;
+        PackageManager packageManager = context.getPackageManager();
+        String packageName = context.getPackageName();
 
-        if (args.get(0) instanceof JSONObject) {
-            iconName = args.getJSONObject(0).optString("iconName", "Light");
-        } else {
-            iconName = args.getString(0);
-        }
-
-        changeIcon(iconName, callbackContext);
-        return true;
-    }
-
-    private void changeIcon(String iconName, CallbackContext callbackContext) {
         try {
-            Context context = cordova.getActivity();
-            PackageManager pm = context.getPackageManager();
-            String pkg = context.getPackageName();
-
-            // Normalize icon name (light -> Light)
-            String selectedIcon = capitalize(iconName);
-
-            // ✅ IMPORTANT: Disable MAIN ACTIVITY (same as your first plugin)
-            pm.setComponentEnabledSetting(
-                    cordova.getActivity().getComponentName(),
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP
+            // MainActivity must always remain enabled.
+            ComponentName mainActivity = new ComponentName(
+                packageName,
+                packageName + MAIN_ACTIVITY
             );
 
-            // ✅ Disable ALL launcher aliases (brute force)
-            disable(pm, pkg, "Light");
-            disable(pm, pkg, "Dark");
-            disable(pm, pkg, "Private");
+            packageManager.setComponentEnabledSetting(
+                mainActivity,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            );
 
-            // ✅ Enable ONLY selected icon
-            enable(pm, pkg, selectedIcon);
+            // Disable all aliases except the selected alias.
+            for (String alias : ICON_ALIASES) {
 
-            callbackContext.success("Icon changed to " + selectedIcon);
+                ComponentName component = new ComponentName(
+                    packageName,
+                    packageName + alias
+                );
+
+                int state = alias.equals(selectedAlias)
+                    ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+                packageManager.setComponentEnabledSetting(
+                    component,
+                    state,
+                    PackageManager.DONT_KILL_APP
+                );
+            }
+
+            // Save selected icon for upgrade recovery.
+            SharedPreferences preferences = context.getSharedPreferences(
+                PREFS_NAME,
+                Context.MODE_PRIVATE
+            );
+
+            preferences.edit()
+                .putString(PREF_ACTIVE_ICON, selectedAlias)
+                .apply();
+
+            Log.i(TAG, "Icon changed successfully: " + selectedAlias);
 
         } catch (Exception e) {
-            callbackContext.error("Error changing icon: " + e.getMessage());
+            Log.e(TAG, "Error changing app icon", e);
         }
     }
 
-    // ✅ Enable alias
-    private void enable(PackageManager pm, String pkg, String name) {
-        pm.setComponentEnabledSetting(
-                new ComponentName(pkg, pkg + "." + name),
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP
-        );
-    }
+    private static String getAlias(String iconName) {
 
-    // ✅ Disable alias
-    private void disable(PackageManager pm, String pkg, String name) {
-        pm.setComponentEnabledSetting(
-                new ComponentName(pkg, pkg + "." + name),
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP
-        );
-    }
+        switch (iconName.toLowerCase()) {
 
-    // ✅ Helper: capitalize first letter
-    private String capitalize(String value) {
-        if (value == null || value.length() == 0) return value;
-        return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
+            case "light":
+                return ".Light";
+
+            case "dark":
+                return ".Dark";
+
+            case "private":
+                return ".Private";
+
+            default:
+                return null;
+        }
     }
 }
