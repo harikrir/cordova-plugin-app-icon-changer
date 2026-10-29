@@ -90,7 +90,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             if ("Default".equalsIgnoreCase(selectedIcon)) {
 
-                // Return to OutSystems Default icon
+                // OutSystems default icon
 
                 pm.setComponentEnabledSetting(
 
@@ -120,9 +120,9 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             } else {
 
-                // Switching to Light, Dark, or Private
+                // Custom icon (Light, Dark, Private)
 
-                // 1. Disable other aliases first
+                // 1. Disable the other aliases
 
                 for (String alias : ALIASES) {
 
@@ -144,7 +144,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 }
 
-                // 2. Enable chosen custom alias
+                // 2. Enable chosen alias
 
                 ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
 
@@ -158,7 +158,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 );
 
-                // 3. Disable MainActivity launcher so OutSystems default icon does not duplicate
+                // 3. Disable MainActivity so default OutSystems icon does NOT duplicate
 
                 pm.setComponentEnabledSetting(
 
@@ -174,7 +174,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             callbackContext.success("Icon changed to " + selectedIcon + ". Restarting app to apply.");
 
-            // Terminate cleanly so Android launcher updates the icon tile in-place without creating duplicate shortcuts
+            // Terminate so the launcher updates cleanly without duplicate shortcuts
 
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 
