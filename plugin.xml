@@ -25,7 +25,7 @@
         </edit-config>
 
         <!-- 3. Register dynamic interceptor -->
-        <config-file target="AndroidManifest.xml" parent="application">
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <activity android:name="com.cordova.changeappicon.SmartRedirectActivity" android:exported="true" android:noHistory="true" android:theme="@android:style/Theme.Translucent.NoTitleBar">
                 <intent-filter>
                     <action android:name="android.intent.action.VIEW" />
