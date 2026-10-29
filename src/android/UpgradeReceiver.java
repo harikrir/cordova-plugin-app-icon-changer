@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 public class UpgradeReceiver extends BroadcastReceiver {
    private static final String TAG = "AppIconUpgradeReceiver";
-   private static final String[] ALIASES = {"Light", "Dark", "Private"};
+   private static final String[] ALIASES = {"Dark", "Private"};
    @Override
    public void onReceive(Context context, Intent intent) {
        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
@@ -15,6 +15,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
            try {
                PackageManager pm = context.getPackageManager();
                String pkg = context.getPackageName();
+               // Check if user was previously running Dark or Private
                String activeAlias = null;
                for (String alias : ALIASES) {
                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
@@ -25,6 +26,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
                }
                ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
                if (activeAlias != null) {
+                   // Retain the chosen Dark or Private icon
                    for (String alias : ALIASES) {
                        ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
                        pm.setComponentEnabledSetting(
@@ -41,6 +43,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
                            PackageManager.DONT_KILL_APP
                    );
                } else {
+                   // Default to Light (MainActivity enabled, all aliases disabled)
                    pm.setComponentEnabledSetting(
                            mainActivity,
                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
