@@ -90,7 +90,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
             if ("Light".equalsIgnoreCase(selectedIcon) || "Default".equalsIgnoreCase(selectedIcon)) {
 
-                // Return to Default (MainActivity)
+                // Return to Light (MainActivity)
 
                 pm.setComponentEnabledSetting(
 
@@ -124,21 +124,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 // Switching to Dark or Private
 
-                ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
-
-                // 1. Enable the target alias FIRST
-
-                pm.setComponentEnabledSetting(
-
-                        targetAlias,
-
-                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-
-                        PackageManager.DONT_KILL_APP
-
-                );
-
-                // 2. Disable unused aliases
+                // 1. Disable other aliases
 
                 for (String alias : ALIASES) {
 
@@ -160,7 +146,21 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 }
 
-                // 3. Disable MainActivity LAST
+                // 2. Enable target alias FIRST
+
+                ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
+
+                pm.setComponentEnabledSetting(
+
+                        targetAlias,
+
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+
+                        PackageManager.DONT_KILL_APP
+
+                );
+
+                // 3. Disable MainActivity so default icon disappears
 
                 pm.setComponentEnabledSetting(
 
@@ -175,8 +175,6 @@ public class ChangeAppIcon extends CordovaPlugin {
             }
 
             callbackContext.success("Icon changed to " + selectedIcon);
-
-            // Give PM time to persist state before terminating process
 
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 
@@ -204,7 +202,7 @@ public class ChangeAppIcon extends CordovaPlugin {
 
                 }
 
-            }, 500);
+            }, 300);
 
         } catch (Exception e) {
 
