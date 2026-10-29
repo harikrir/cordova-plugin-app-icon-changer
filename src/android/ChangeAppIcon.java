@@ -16,31 +16,6 @@ public class ChangeAppIcon extends CordovaPlugin {
    private static final String ACTION_CHANGE_ICON = "changeIcon";
    private static final String[] ALIASES = {"Light", "Dark", "Private"};
    @Override
-   protected void pluginInitialize() {
-       super.pluginInitialize();
-       // Self-heal: Ensure MainActivity is enabled if it was disabled in an earlier release
-       ensureMainActivityEnabled();
-   }
-   private void ensureMainActivityEnabled() {
-       try {
-           Context context = cordova.getActivity();
-           PackageManager pm = context.getPackageManager();
-           String pkg = context.getPackageName();
-           ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
-           int state = pm.getComponentEnabledSetting(mainActivity);
-           if (state != PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-               pm.setComponentEnabledSetting(
-                       mainActivity,
-                       PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                       PackageManager.DONT_KILL_APP
-               );
-               Log.d(TAG, "MainActivity ensured ENABLED.");
-           }
-       } catch (Exception e) {
-           Log.e(TAG, "Error ensuring MainActivity state: " + e.getMessage());
-       }
-   }
-   @Override
    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
            throws JSONException {
        if (!ACTION_CHANGE_ICON.equals(action)) {
@@ -67,17 +42,17 @@ public class ChangeAppIcon extends CordovaPlugin {
            PackageManager pm = context.getPackageManager();
            String pkg = context.getPackageName();
            String selectedIcon = capitalize(iconName);
-           // 1. Keep MainActivity enabled so RedirectActivity and deep links work
-           ensureMainActivityEnabled();
-           ComponentName targetComponent = new ComponentName(pkg, pkg + "." + selectedIcon);
-           // If already set to this icon, exit without restarting
-           if (pm.getComponentEnabledSetting(targetComponent) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-               callbackContext.success("Icon already set to " + selectedIcon);
-               return;
-           }
-           // 2. Disable inactive aliases first to signal launcher shortcut cleanup
-           for (String alias : ALIASES) {
-               if (!alias.equalsIgnoreCase(selectedIcon)) {
+           ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+           if ("Light".equalsIgnoreCase(selectedIcon)) {
+               // Switching back to Default (Light)
+               // 1. Enable MainActivity
+               pm.setComponentEnabledSetting(
+                       mainActivity,
+                       PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                       PackageManager.DONT_KILL_APP
+               );
+               // 2. Disable all aliases
+               for (String alias : ALIASES) {
                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
                    pm.setComponentEnabledSetting(
                            comp,
@@ -85,16 +60,35 @@ public class ChangeAppIcon extends CordovaPlugin {
                            PackageManager.DONT_KILL_APP
                    );
                }
+           } else {
+               // Switching to Dark or Private
+               // 1. Disable other aliases
+               for (String alias : ALIASES) {
+                   if (!alias.equalsIgnoreCase(selectedIcon)) {
+                       ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
+                       pm.setComponentEnabledSetting(
+                               comp,
+                               PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                               PackageManager.DONT_KILL_APP
+                       );
+                   }
+               }
+               // 2. Enable target alias
+               ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
+               pm.setComponentEnabledSetting(
+                       targetAlias,
+                       PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                       PackageManager.DONT_KILL_APP
+               );
+               // 3. Disable MainActivity launcher to prevent 2 icons
+               pm.setComponentEnabledSetting(
+                       mainActivity,
+                       PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                       PackageManager.DONT_KILL_APP
+               );
            }
-           // 3. Enable the selected alias
-           pm.setComponentEnabledSetting(
-                   targetComponent,
-                   PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                   PackageManager.DONT_KILL_APP
-           );
-           // 4. Send success to JavaScript
            callbackContext.success("Icon changed to " + selectedIcon + ". Restarting app to apply.");
-           // 5. Terminate process cleanly to force Android launcher to refresh icon in-place
+           // Terminate app cleanly so the launcher updates without duplicate tiles
            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                @Override
                public void run() {
@@ -105,7 +99,7 @@ public class ChangeAppIcon extends CordovaPlugin {
                        android.os.Process.killProcess(android.os.Process.myPid());
                        System.exit(0);
                    } catch (Exception ex) {
-                       Log.e(TAG, "Error finishing application: " + ex.getMessage());
+                       Log.e(TAG, "Error closing app: " + ex.getMessage());
                    }
                }
            }, 500);
