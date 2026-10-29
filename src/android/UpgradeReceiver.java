@@ -24,15 +24,11 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
         if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
 
-            Log.d(TAG, "Application upgraded. Restoring MainActivity and normalizing aliases...");
-
             try {
 
                 PackageManager pm = context.getPackageManager();
 
                 String pkg = context.getPackageName();
-
-                // 1. Always keep MainActivity ENABLED so OutSystems cache manifest & RedirectActivity work
 
                 ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
 
@@ -45,8 +41,6 @@ public class UpgradeReceiver extends BroadcastReceiver {
                         PackageManager.DONT_KILL_APP
 
                 );
-
-                // 2. Check which alias the user was using previously
 
                 String activeAlias = null;
 
@@ -64,15 +58,11 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 }
 
-                // Fallback to Light if none was explicitly enabled
-
                 if (activeAlias == null) {
 
                     activeAlias = "Light";
 
                 }
-
-                // 3. Enable ONLY the active alias and disable the other two
 
                 for (String alias : ALIASES) {
 
@@ -93,8 +83,6 @@ public class UpgradeReceiver extends BroadcastReceiver {
                     );
 
                 }
-
-                Log.d(TAG, "Upgrade complete. Active icon: " + activeAlias);
 
             } catch (Exception e) {
 
