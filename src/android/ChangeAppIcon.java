@@ -14,47 +14,14 @@ import org.json.JSONObject;
 public class ChangeAppIcon extends CordovaPlugin {
    private static final String TAG = "ChangeAppIcon";
    private static final String ACTION_CHANGE_ICON = "changeIcon";
-   public static final String[] ALIASES = {"Light", "Dark", "Private"};
+   public static final String[] ALIASES = {"Dark", "Private"};
    @Override
-   protected void pluginInitialize() {
-       super.pluginInitialize();
-       // Ensure MainActivity stays enabled to prevent OutSystems deep link crashes
-       ensureMainActivityEnabled();
-   }
-   private void ensureMainActivityEnabled() {
-       try {
-           Context context = cordova.getActivity();
-           PackageManager pm = context.getPackageManager();
-           String pkg = context.getPackageName();
-           ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
-           if (pm.getComponentEnabledSetting(mainActivity) != PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-               pm.setComponentEnabledSetting(
-                       mainActivity,
-                       PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                       PackageManager.DONT_KILL_APP
-               );
-           }
-       } catch (Exception e) {
-           Log.e(TAG, "Failed to ensure MainActivity enabled: " + e.getMessage());
-       }
-   }
-   @Override
-   public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
-           throws JSONException {
+   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
        if (!ACTION_CHANGE_ICON.equals(action)) {
            callbackContext.error("Unsupported action");
            return false;
        }
-       if (args == null || args.length() == 0) {
-           callbackContext.error("Missing icon name");
-           return true;
-       }
-       String iconName;
-       if (args.get(0) instanceof JSONObject) {
-           iconName = args.getJSONObject(0).optString("iconName", "Light");
-       } else {
-           iconName = args.getString(0);
-       }
+       String iconName = args.optJSONObject(0) != null ? args.optJSONObject(0).optString("iconName", "Light") : args.getString(0);
        changeIcon(iconName, callbackContext);
        return true;
    }
@@ -65,34 +32,23 @@ public class ChangeAppIcon extends CordovaPlugin {
            PackageManager pm = context.getPackageManager();
            String pkg = context.getPackageName();
            String selectedIcon = capitalize(iconName);
-           if ("Default".equalsIgnoreCase(selectedIcon) || selectedIcon.isEmpty()) {
-               selectedIcon = "Light";
-           }
-           ensureMainActivityEnabled();
-           ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
-           if (pm.getComponentEnabledSetting(targetAlias) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-               callbackContext.success("Icon already set to " + selectedIcon);
-               return;
-           }
-           // Enable target alias
-           pm.setComponentEnabledSetting(
-                   targetAlias,
-                   PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                   PackageManager.DONT_KILL_APP
-           );
-           // Disable other aliases
-           for (String alias : ALIASES) {
-               if (!alias.equalsIgnoreCase(selectedIcon)) {
-                   ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
-                   pm.setComponentEnabledSetting(
-                           comp,
-                           PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                           PackageManager.DONT_KILL_APP
-                   );
+           ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
+           if ("Light".equalsIgnoreCase(selectedIcon) || "Default".equalsIgnoreCase(selectedIcon)) {
+               // Revert to Light: Enable MainActivity, Disable all aliases
+               pm.setComponentEnabledSetting(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+               for (String alias : ALIASES) {
+                   pm.setComponentEnabledSetting(new ComponentName(pkg, pkg + "." + alias), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
                }
+           } else {
+               // Switch to Dark/Private: Enable Target Alias, Disable MainActivity
+               for (String alias : ALIASES) {
+                   pm.setComponentEnabledSetting(new ComponentName(pkg, pkg + "." + alias),
+                       alias.equalsIgnoreCase(selectedIcon) ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                       PackageManager.DONT_KILL_APP);
+               }
+               pm.setComponentEnabledSetting(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
            }
            callbackContext.success("Icon changed to " + selectedIcon);
-           // Terminate cleanly to allow OS launcher to refresh the icon in-place
            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                @Override
                public void run() {
@@ -106,7 +62,7 @@ public class ChangeAppIcon extends CordovaPlugin {
                        Log.e(TAG, "Error closing app: " + ex.getMessage());
                    }
                }
-           }, 400);
+           }, 300);
        } catch (Exception e) {
            Log.e(TAG, "Error changing icon: " + e.getMessage(), e);
            callbackContext.error("Error changing icon: " + e.getMessage());
