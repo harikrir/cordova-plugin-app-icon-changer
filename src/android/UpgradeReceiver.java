@@ -24,7 +24,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
         if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
 
-            Log.d(TAG, "Application updated. Sanitizing MainActivity and Aliases...");
+            Log.d(TAG, "Application package upgraded. Sanitizing MainActivity and Aliases...");
 
             try {
 
@@ -32,7 +32,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 String pkg = context.getPackageName();
 
-                // 1. Re-enable MainActivity so RedirectActivity and deep links work immediately
+                // 1. Explicitly re-enable MainActivity so RedirectActivity and deep links work
 
                 ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
 
@@ -68,7 +68,7 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 }
 
-                // If no alias was explicitly enabled (clean update from default), default to Light
+                // If no alias was explicitly enabled, fallback to default Light
 
                 if (activeAlias == null) {
 
@@ -110,11 +110,11 @@ public class UpgradeReceiver extends BroadcastReceiver {
 
                 }
 
-                Log.d(TAG, "Cleanup complete. Single active launcher alias enforced: " + activeAlias);
+                Log.d(TAG, "Cleanup completed successfully. Single active launcher alias: " + activeAlias);
 
             } catch (Exception e) {
 
-                Log.e(TAG, "Failed to clean up components on upgrade: " + e.getMessage(), e);
+                Log.e(TAG, "Failed to sanitize components on upgrade: " + e.getMessage(), e);
 
             }
 
