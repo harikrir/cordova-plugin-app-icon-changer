@@ -10,11 +10,10 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 public class ChangeAppIcon extends CordovaPlugin {
    private static final String TAG = "ChangeAppIcon";
    private static final String ACTION_CHANGE_ICON = "changeIcon";
-   public static final String[] ALIASES = {"Dark", "Private"};
+   public static final String[] ALIASES = {"Light", "Dark", "Private"};
    @Override
    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
        if (!ACTION_CHANGE_ICON.equals(action)) {
@@ -32,23 +31,27 @@ public class ChangeAppIcon extends CordovaPlugin {
            PackageManager pm = context.getPackageManager();
            String pkg = context.getPackageName();
            String selectedIcon = capitalize(iconName);
+           if ("Default".equalsIgnoreCase(selectedIcon) || selectedIcon.isEmpty()) {
+               selectedIcon = "Light";
+           }
+           // 1. Force MainActivity to stay ENABLED to prevent Cache Manifest crashes
            ComponentName mainActivity = new ComponentName(pkg, pkg + ".MainActivity");
-           if ("Light".equalsIgnoreCase(selectedIcon) || "Default".equalsIgnoreCase(selectedIcon)) {
-               // Revert to Light: Enable MainActivity, Disable all aliases
-               pm.setComponentEnabledSetting(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-               for (String alias : ALIASES) {
-                   pm.setComponentEnabledSetting(new ComponentName(pkg, pkg + "." + alias), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-               }
-           } else {
-               // Switch to Dark/Private: Enable Target Alias, Disable MainActivity
-               for (String alias : ALIASES) {
-                   pm.setComponentEnabledSetting(new ComponentName(pkg, pkg + "." + alias),
+           pm.setComponentEnabledSetting(
+                   mainActivity,
+                   PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                   PackageManager.DONT_KILL_APP
+           );
+           // 2. Enable the selected alias and disable the rest
+           for (String alias : ALIASES) {
+               ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
+               pm.setComponentEnabledSetting(
+                       comp,
                        alias.equalsIgnoreCase(selectedIcon) ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                       PackageManager.DONT_KILL_APP);
-               }
-               pm.setComponentEnabledSetting(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                       PackageManager.DONT_KILL_APP
+               );
            }
            callbackContext.success("Icon changed to " + selectedIcon);
+           // Restart cleanly to apply OS launcher refresh
            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                @Override
                public void run() {
