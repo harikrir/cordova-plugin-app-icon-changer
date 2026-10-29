@@ -18,7 +18,7 @@ public class ChangeAppIcon extends CordovaPlugin {
    @Override
    protected void pluginInitialize() {
        super.pluginInitialize();
-       // Guarantee MainActivity is ALWAYS enabled so cache manifest and deep links never fail
+       // Ensure MainActivity stays enabled to prevent OutSystems deep link crashes
        ensureMainActivityEnabled();
    }
    private void ensureMainActivityEnabled() {
@@ -68,21 +68,19 @@ public class ChangeAppIcon extends CordovaPlugin {
            if ("Default".equalsIgnoreCase(selectedIcon) || selectedIcon.isEmpty()) {
                selectedIcon = "Light";
            }
-           // 1. Ensure MainActivity stays ENABLED permanently
            ensureMainActivityEnabled();
            ComponentName targetAlias = new ComponentName(pkg, pkg + "." + selectedIcon);
-           // If already active, exit without restarting
            if (pm.getComponentEnabledSetting(targetAlias) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
                callbackContext.success("Icon already set to " + selectedIcon);
                return;
            }
-           // 2. Enable target alias first
+           // Enable target alias
            pm.setComponentEnabledSetting(
                    targetAlias,
                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                    PackageManager.DONT_KILL_APP
            );
-           // 3. Disable the other two aliases
+           // Disable other aliases
            for (String alias : ALIASES) {
                if (!alias.equalsIgnoreCase(selectedIcon)) {
                    ComponentName comp = new ComponentName(pkg, pkg + "." + alias);
@@ -94,7 +92,7 @@ public class ChangeAppIcon extends CordovaPlugin {
                }
            }
            callbackContext.success("Icon changed to " + selectedIcon);
-           // 4. Close cleanly after 400ms to refresh launcher cache in-place
+           // Terminate cleanly to allow OS launcher to refresh the icon in-place
            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                @Override
                public void run() {
