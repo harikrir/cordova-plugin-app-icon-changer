@@ -35,10 +35,11 @@
         <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
         <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
-
+<!--
 <hook
     type="after_prepare"
     src="hooks/after_prepare/010-remove-main-launcher.js" />
+		-->
       
 
 
@@ -46,7 +47,7 @@
   	  <config-file target="AndroidManifest.xml" parent="application">
             <activity-alias
 				android:name="Light"
-				android:enabled="true"
+				android:enabled="false"
 				android:icon="@drawable/app_light"
 			    	android:exported="true"
 				android:targetActivity=".MainActivity">
