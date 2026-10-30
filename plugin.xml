@@ -14,23 +14,32 @@
         <clobbers target="AppIconChanger" />
     </js-module>
 
-    <!-- Android configuration -->
+
     <platform name="android">
 
-        <!-- Java source files -->
+        <!-- ✅ Register plugin -->
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="AppIconChanger">
+                <param name="android-package"
+                       value="com.cordova.changeappicon.ChangeAppIcon" />
+            </feature>
+        </config-file>
+
+        <!-- ✅ Java file -->
         <source-file
             src="src/android/ChangeAppIcon.java"
             target-dir="src/com/cordova/changeappicon" />
 
-        <source-file
-            src="src/android/UpgradeReceiver.java"
-            target-dir="src/com/cordova/changeappicon" />
+        <!-- ✅ ICONS -->
+        <resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
+        <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
+        <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
-        <!-- Remove only the MAIN / LAUNCHER intent filter from MainActivity.
-             Do not remove MainActivity itself. -->
-        <config-file
+
+
+   <config-file
             target="AndroidManifest.xml"
-            parent="/manifest/application">
+            parent="application">
 
             <activity
                 android:name=".MainActivity"
@@ -44,79 +53,52 @@
             </activity>
 
         </config-file>
+      
 
-        <!-- Launcher aliases -->
-        <config-file
-            target="AndroidManifest.xml"
-            parent="/manifest/application">
 
+        <!-- ✅ ADD ALIASES -->
+  	  <config-file target="AndroidManifest.xml" parent="application">
             <activity-alias
-                android:name=".Light"
-                android:targetActivity=".MainActivity"
-                android:enabled="true"
-                android:exported="true"
-                android:icon="@mipmap/ic_launcher"
-                android:label="@string/app_name">
+				android:name="Light"
+				android:enabled="false"
+				android:icon="@drawable/app_light"
+			    	android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
+			<activity-alias
+				android:name="Dark"
+				android:enabled="false"
+				android:icon="@drawable/app_dark"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-            </activity-alias>
+			<activity-alias
+				android:name="Private"
+				android:enabled="false"
+				android:icon="@drawable/app_private"
+				android:exported="true"
+				android:targetActivity=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN"/>
+					<category android:name="android.intent.category.LAUNCHER"/>
+				</intent-filter>
+			</activity-alias>
 
-            <activity-alias
-                android:name=".Dark"
-                android:targetActivity=".MainActivity"
-                android:enabled="false"
-                android:exported="true"
-                android:icon="@mipmap/ic_launcher_dark"
-                android:label="@string/app_name">
-
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-
-            </activity-alias>
-
-            <activity-alias
-                android:name=".Private"
-                android:targetActivity=".MainActivity"
-                android:enabled="false"
-                android:exported="true"
-                android:icon="@mipmap/ic_launcher_private"
-                android:label="@string/app_name">
-
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-
-            </activity-alias>
-
-        </config-file>
-
-        <!-- Restore the selected launcher icon after application upgrade -->
-        <config-file
-            target="AndroidManifest.xml"
-            parent="/manifest/application">
-
-            <receiver
-                android:name="com.cordova.changeappicon.UpgradeReceiver"
-                android:enabled="true"
-                android:exported="false">
-
-                <intent-filter>
-                    <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                </intent-filter>
-
-            </receiver>
-
+		
         </config-file>
 
     </platform>
-
+    
 
     <platform name="ios">
 
