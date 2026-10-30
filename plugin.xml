@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <plugin
+    id="cordova-plugin-app-icon-changer"
+    version="1.0.1"
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    id="com.cordova.changeappicon"
-    version="1.0.0">
+      xmlns:tools="http://schemas.android.com/tools">
 
-    <name>ChangeAppIcon</name>
+    <name>App Icon Changer</name>
+    <description>Change iOS app icon at runtime</description>
+    <license>MIT</license>
 
-    <js-module src="www/ChangeAppIcon.js" name="ChangeAppIcon">
-        <clobbers target="cordova.plugins.changeAppIcon" />
+    <!-- JavaScript interface -->
+    <js-module name="AppIconChanger" src="www/AppIconChanger.js">
+        <clobbers target="AppIconChanger" />
     </js-module>
 
     <!-- Android configuration -->
