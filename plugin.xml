@@ -61,7 +61,7 @@
   	  <config-file target="AndroidManifest.xml" parent="application">
             <activity-alias
 				android:name="Light"
-				android:enabled="false"
+				android:enabled="true"
 				android:icon="@drawable/app_light"
 			    	android:exported="true"
 				android:targetActivity=".MainActivity">
