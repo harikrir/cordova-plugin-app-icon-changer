@@ -37,22 +37,23 @@
 
 
 
-   <config-file
-            target="AndroidManifest.xml"
-            parent="application">
+  <edit-config
+    file="AndroidManifest.xml"
+    target="/manifest/application/activity[@android:name='.MainActivity']"
+    mode="merge">
 
-            <activity
-                android:name=".MainActivity"
-                tools:node="merge">
+    <activity
+        android:name=".MainActivity"
+        tools:node="merge">
 
-                <intent-filter tools:node="remove">
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
+        <intent-filter tools:node="remove">
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
 
-            </activity>
+    </activity>
 
-        </config-file>
+</edit-config>
       
 
 
