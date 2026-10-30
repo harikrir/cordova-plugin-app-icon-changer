@@ -13,7 +13,7 @@ public class ChangeAppIcon {
     private static final String PREFS_NAME = "AppIconChanger";
     private static final String PREF_ACTIVE_ICON = "active_icon";
 
-    private static final String MAIN_ACTIVITY = ".MainActivity";
+
 
     private static final String[] ICON_ALIASES = {
         ".Light",
@@ -39,17 +39,7 @@ public class ChangeAppIcon {
         String packageName = context.getPackageName();
 
         try {
-            // MainActivity must always remain enabled.
-            ComponentName mainActivity = new ComponentName(
-                packageName,
-                packageName + MAIN_ACTIVITY
-            );
-
-            packageManager.setComponentEnabledSetting(
-                mainActivity,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP
-            );
+          
 
             // Disable all aliases except the selected alias.
             for (String alias : ICON_ALIASES) {
