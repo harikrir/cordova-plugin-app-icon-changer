@@ -36,28 +36,9 @@
         <resource-file src="src/android/icons/app_private.png" target="res/drawable/app_private.png"/>
 
 
-
-<edit-config
-    file="AndroidManifest.xml"
-    target="/manifest/application/activity[@android:name='com.aub.mobilebanking.bh.MainActivity']"
-    mode="merge">
-
-    <activity
-        android:name="com.aub.mobilebanking.bh.MainActivity"
-        tools:node="merge">
-
-        <intent-filter
-            android:label="@string/launcher_name"
-            tools:node="remove">
-
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-
-        </intent-filter>
-
-    </activity>
-
-</edit-config>
+<hook
+    type="after_prepare"
+    src="hooks/after_prepare/010-remove-main-launcher.js" />
       
 
 
