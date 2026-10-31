@@ -60,6 +60,14 @@ public class ChangeAppIcon extends CordovaPlugin {
             // ✅ Enable ONLY selected icon
             enable(pm, pkg, selectedIcon);
 
+            // Save selected icon for future app upgrades
+             context.getSharedPreferences(
+                "AppIconChanger",
+                Context.MODE_PRIVATE
+        ).edit()
+         .putString("active_icon", "." + selectedIcon)
+         .apply();
+
             callbackContext.success("Icon changed to " + selectedIcon);
 
         } catch (Exception e) {
