@@ -40,7 +40,19 @@
     type="after_prepare"
     src="hooks/after_prepare/010-remove-main-launcher.js" />
 		
-      
+		
+      <config-file target="AndroidManifest.xml" parent="/manifest/application">
+    <receiver
+        android:name="com.cordova.changeappicon.UpgradeReceiver"
+        android:enabled="true"
+        android:exported="false">
+
+        <intent-filter>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+        </intent-filter>
+
+    </receiver>
+</config-file>
 
 
         <!-- ✅ ADD ALIASES -->
