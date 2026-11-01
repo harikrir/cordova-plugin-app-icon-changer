@@ -30,6 +30,12 @@
             src="src/android/ChangeAppIcon.java"
             target-dir="src/com/cordova/changeappicon" />
 
+<!-- UpgradeReceiver -->
+<source-file
+    src="src/android/UpgradeReceiver.java"
+    target-dir="src/com/cordova/changeappicon" />
+
+		
         <!-- ✅ ICONS -->
         <resource-file src="src/android/icons/app_light.png" target="res/drawable/app_light.png"/>
         <resource-file src="src/android/icons/app_dark.png" target="res/drawable/app_dark.png"/>
